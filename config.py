@@ -9,7 +9,7 @@ class Settings(BaseSettings):
   """应用配置"""
   
   # ComfyUI服务器配置
-  comfyui_server: str = "192.168.48.173:8188"
+  comfyui_server: str = "192.168.0.32:8188"
   comfyui_protocol: str = "http"
   comfyui_ws_protocol: str = "ws"
   

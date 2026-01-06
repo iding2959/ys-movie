@@ -17,11 +17,8 @@ from core.api.workflow import router as workflow_base_router, setup_workflow_rou
 from core.api.task import router as task_base_router, setup_task_routes
 from core.api.media import router as media_base_router, setup_media_routes
 
-# 导入专用工作流API
-from core.api.specialized.text2image import router as text2image_base_router, setup_text2image_routes
-from core.api.specialized.wan22_i2v import router as wan22_i2v_base_router, setup_wan22_i2v_routes
-from core.api.specialized.super_video import router as super_video_base_router, setup_super_video_routes
-from core.api.specialized.infinitetalk_i2v import router as infinitetalk_i2v_base_router, setup_infinitetalk_i2v_routes
+# 导入专用工作流API（仅保留SuperVideo）
+from core.api.specialized.super_video import setup_super_video_routes
 
 # 导入配置
 from config import settings
@@ -67,14 +64,6 @@ connection_manager = ConnectionManager()
 
 # 设置并注册所有路由
 system_router = setup_system_routes(COMFYUI_SERVER, COMFYUI_PROTOCOL, COMFYUI_WS_PROTOCOL)
-text2image_router = setup_text2image_routes(
-  COMFYUI_SERVER,
-  task_manager,
-  connection_manager,
-  WORKFLOW_DIR,
-  COMFYUI_PROTOCOL,
-  COMFYUI_WS_PROTOCOL
-)
 workflow_router = setup_workflow_routes(
   COMFYUI_SERVER,
   task_manager,
@@ -95,22 +84,7 @@ media_router = setup_media_routes(
   COMFYUI_PROTOCOL,
   COMFYUI_WS_PROTOCOL
 )
-wan22_i2v_router = setup_wan22_i2v_routes(
-  COMFYUI_SERVER,
-  task_manager,
-  connection_manager,
-  COMFYUI_PROTOCOL,
-  COMFYUI_WS_PROTOCOL
-)
 super_video_router = setup_super_video_routes(
-  COMFYUI_SERVER,
-  task_manager,
-  connection_manager,
-  WORKFLOW_DIR,
-  COMFYUI_PROTOCOL,
-  COMFYUI_WS_PROTOCOL
-)
-infinitetalk_i2v_router = setup_infinitetalk_i2v_routes(
   COMFYUI_SERVER,
   task_manager,
   connection_manager,
@@ -121,18 +95,34 @@ infinitetalk_i2v_router = setup_infinitetalk_i2v_routes(
 
 # 注册路由到应用
 app.include_router(system_router)
-app.include_router(text2image_router)
 app.include_router(workflow_router)
 app.include_router(task_router)
 app.include_router(media_router)
-app.include_router(wan22_i2v_router)
 app.include_router(super_video_router)
-app.include_router(infinitetalk_i2v_router)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-  """根路径，返回首页"""
+  """根路径，返回SuperVideo页面"""
+  try:
+    index_file = Path("static/specialized/super_video.html")
+    if not index_file.exists():
+      return HTMLResponse(
+        content="<h1>404 - 未找到super_video.html</h1>"
+                "<p>请确保static/specialized/super_video.html文件存在</p>"
+      )
+    
+    with open(index_file, "r", encoding="utf-8") as f:
+      content = f.read()
+    return HTMLResponse(content=content)
+  except Exception as e:
+    logger.error(f"读取super_video.html失败: {e}")
+    return HTMLResponse(content=f"<h1>500 - 服务器错误</h1><p>{str(e)}</p>")
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard():
+  """监控与调试界面"""
   try:
     index_file = Path("static/index.html")
     if not index_file.exists():
