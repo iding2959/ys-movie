@@ -12,6 +12,7 @@ from datetime import datetime
 import json
 import logging
 import traceback
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,22 @@ def setup_workflow_routes(
       }))
   
   @router.post("/workflow/submit", response_model=ResponseModel)
+  def apply_random_seeds(workflow: dict):
+    """
+    为存在seed字段且为空/零的节点填充随机种子，避免被跳过
+    """
+    for node in workflow.values():
+      if not isinstance(node, dict):
+        continue
+      inputs = node.get("inputs")
+      if not isinstance(inputs, dict):
+        continue
+      if "seed" in inputs:
+        seed_val = inputs.get("seed")
+        if seed_val in (None, "", 0):
+          inputs["seed"] = random.randint(1, 2 ** 63 - 1)
+  
+  @router.post("/workflow/submit", response_model=ResponseModel)
   async def submit_workflow(
     data: WorkflowSubmit,
     background_tasks: BackgroundTasks
@@ -103,6 +120,9 @@ def setup_workflow_routes(
       workflow = data.workflow
       if data.params:
         workflow = apply_params_to_workflow(workflow, data.params)
+      
+      # 补全随机种子
+      apply_random_seeds(workflow)
       
       # 提交到ComfyUI
       async with ComfyUIClient(comfyui_server, protocol, ws_protocol) as client:
@@ -149,7 +169,7 @@ def setup_workflow_routes(
   
   @router.post("/workflow/upload")
   async def upload_workflow(file: UploadFile = File(...)):
-    """上传工作流文件"""
+    """上传工作流文件（仅接受API格式）"""
     if not file.filename.endswith('.json'):
       raise HTTPException(
         status_code=400,
@@ -161,16 +181,12 @@ def setup_workflow_routes(
     
     try:
       # 验证JSON格式
-      raw_workflow = json.loads(content)
-      
-      # 检测并转换工作流格式
-      if 'nodes' in raw_workflow and isinstance(raw_workflow['nodes'], list):
-        # UI格式 - 转换为API格式
-        logger.info(f"检测到UI格式工作流，正在转换为API格式")
-        workflow = _convert_ui_to_api_format(raw_workflow)
-      else:
-        # 假设已经是API格式
-        workflow = raw_workflow
+      workflow = json.loads(content)
+      if 'nodes' in workflow and isinstance(workflow['nodes'], list):
+        raise HTTPException(
+          status_code=400,
+          detail="仅支持API格式工作流（键为节点ID的字典），UI格式已不再支持"
+        )
       
       # 保存到文件
       with open(file_path, 'wb') as f:
@@ -181,7 +197,7 @@ def setup_workflow_routes(
           "filename": file.filename,
           "path": str(file_path),
           "nodes": len(workflow),
-          "format": "UI" if 'nodes' in raw_workflow else "API",
+          "format": "API",
           "workflow": workflow
         },
         message="工作流上传成功"
@@ -260,65 +276,4 @@ def setup_workflow_routes(
     )
   
   return router
-
-
-def _convert_ui_to_api_format(raw_workflow: dict) -> dict:
-  """
-  将 UI 格式的工作流转换为 API 格式
-  
-  Args:
-    raw_workflow: UI 格式的工作流
-    
-  Returns:
-    API 格式的工作流
-  """
-  workflow = {}
-  
-  # 构建link映射
-  link_map = {}  # link_id -> (from_node_id, from_slot)
-  if 'links' in raw_workflow and raw_workflow['links']:
-    for link in raw_workflow['links']:
-      link_id = link[0]
-      from_node_id = str(link[1])
-      from_slot = link[2]
-      link_map[link_id] = (from_node_id, from_slot)
-  
-  # 转换节点
-  for node in raw_workflow['nodes']:
-    if 'id' in node:
-      node_id = str(node['id'])
-      
-      # 构建API格式的节点
-      api_node = {
-        'class_type': node.get('type'),
-        'inputs': {}
-      }
-      
-      # 处理inputs - 将links转换为节点引用
-      if 'inputs' in node and isinstance(node['inputs'], list):
-        for input_idx, input_def in enumerate(node['inputs']):
-          input_name = input_def.get('name', f'input_{input_idx}')
-          link_id = input_def.get('link')
-          
-          if link_id is not None and link_id in link_map:
-            from_node_id, from_slot = link_map[link_id]
-            api_node['inputs'][input_name] = [from_node_id, from_slot]
-      
-      # 处理widgets_values
-      if 'widgets_values' in node:
-        widget_values = node['widgets_values']
-        if 'inputs' in node and isinstance(node['inputs'], list):
-          widget_idx = 0
-          for input_idx, input_def in enumerate(node['inputs']):
-            input_name = input_def.get('name', f'input_{input_idx}')
-            link_id = input_def.get('link')
-            has_widget = 'widget' in input_def and input_def['widget']
-            
-            if has_widget and link_id is None and widget_idx < len(widget_values):
-              api_node['inputs'][input_name] = widget_values[widget_idx]
-              widget_idx += 1
-      
-      workflow[node_id] = api_node
-  
-  return workflow
 

@@ -20,7 +20,7 @@
           <div class="brand-title">画音智慧化处理平台</div>
         </div>
         <div class="nav">
-          <button class="nav-btn active" onclick="switchTab('analysis')" id="analysisTab">视频超分</button>
+          <button class="nav-btn active" onclick="switchTab('analysis')" id="analysisTab">视频处理</button>
           <button class="nav-btn" onclick="switchTab('history')" id="historyTab">任务列表</button>
           <button class="nav-btn" id="refreshBtn" type="button">刷新</button>
         </div>
@@ -30,7 +30,6 @@
         <div class="panel" id="analysisPanel">
           <div class="panel-header">
             <div class="panel-title">工作台</div>
-            <div class="chip">SuperVideo</div>
           </div>
 
           <div class="grid">
@@ -48,6 +47,7 @@
                 </div>
                 <input type="file" id="videoInput" accept="video/*">
               </div>
+              <div class="upload-status" id="fileInfo" style="display: none;"></div>
               <div class="preview" id="videoPreview">
                 <div class="preview-head">预览</div>
                 <video controls id="previewVideo"></video>

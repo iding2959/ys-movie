@@ -368,7 +368,18 @@ async function handleFileSelect(file) {
 
 // 初始化模型选择
 function initModelSelect() {
-  // 模型选择功能（如需扩展可在此添加）
+  const modelSelect = document.getElementById('modelSelect');
+  if (!modelSelect) {
+    return;
+  }
+  
+  // 默认选中第一个有效模型
+  if (!modelSelect.value) {
+    const firstOption = modelSelect.querySelector('option');
+    if (firstOption) {
+      modelSelect.value = firstOption.value;
+    }
+  }
 }
 
 // 自定义模态框
@@ -565,12 +576,12 @@ function showConfirm(title, message, onConfirm) {
 // 初始化提交按钮
 function initSubmitButton() {
   document.getElementById('submitBtn').onclick = async () => {
-    // 获取单选按钮状态
+    // 获取处理选项（前端展示用，不回传processing_option）
     const selectedOption = document.querySelector('input[name="processingOption"]:checked');
     
-    // 根据勾选情况设置模型（目前固定传递两个模型）
-    const models = ['FlashVSR','RealESRGAN_x4plus.pth', '4x-UltraSharpV2.safetensors'];
-    const modelName = models[0]; // 主模型
+    // 模型选择，回传后端
+    const modelSelect = document.getElementById('modelSelect');
+    const modelName = modelSelect && modelSelect.value ? modelSelect.value : 'FlashVSR-v1.1';
     
     const taskNameInput = document.getElementById('taskNameInput');
     const userTaskName = taskNameInput.value.trim();
@@ -587,8 +598,10 @@ function initSubmitButton() {
       return;
     }
 
-    // 获取处理选项值
-    const processingOption = selectedOption.value;
+    // 根据选项确定工作流（仅回传 workflow_key）
+    const workflowKey = selectedOption && selectedOption.value === 'seedvr2'
+      ? 'seedvr2'
+      : 'flash_vsr';
 
     submitBtn.disabled = true;
     submitBtn.textContent = '⏳ 提交中...';
@@ -602,7 +615,7 @@ function initSubmitButton() {
         task_name: taskName,
         model_name: modelName,
         video_filename: uploadedFilename,
-        processing_option: processingOption
+        workflow_key: workflowKey
       });
       
       response = await fetch('/api/super_video/submit', {
@@ -614,7 +627,7 @@ function initSubmitButton() {
           task_name: taskName,
           model_name: modelName,
           video_filename: uploadedFilename,
-          processing_option: processingOption
+          workflow_key: workflowKey
         })
       });
 

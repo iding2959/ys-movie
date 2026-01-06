@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from pathlib import Path
+import subprocess
+import random
 import json
 import logging
 import traceback
@@ -24,14 +26,178 @@ class SuperVideoRequest(BaseModel):
   """SuperVideo 视频放大请求"""
   task_name: str = Field(..., description="任务名称")
   model_name: str = Field(
-    default="RealESRGAN_x4plus.pth",
-    description="放大模型：RealESRGAN_x4plus.pth、4x-UltraSharpV2.safetensors 或 FlashVSR"
+    default="FlashVSR-v1.1",
+    description="放大模型，当前仅支持 FlashVSR-v1.1"
   )
   video_filename: str = Field(..., description="已上传视频文件名")
-  processing_option: Optional[str] = Field(
-    default="super_resolution",
-    description="处理选项：denoise、super_resolution、portrait_enhancement"
+  workflow_key: Optional[str] = Field(
+    default="flash_vsr",
+    description="工作流选择：flash_vsr（当前），预留 seedvr2"
   )
+
+
+def apply_workflow_updates(workflow: dict, updates: list):
+  """
+  应用工作流的节点参数更新
+  
+  Args:
+    workflow: 工作流配置字典
+    updates: 更新列表，元素为 (node_id, path, value)
+  """
+  for node_id, path, value in updates:
+    node = workflow.get(node_id)
+    if not node:
+      continue
+    
+    target = node
+    for index, key in enumerate(path):
+      if key not in target:
+        target = None
+        break
+      
+      if index == len(path) - 1:
+        target[key] = value
+      else:
+        target = target[key]
+    
+    if target is None:
+      logger.warning(f"节点 {node_id} 缺少路径 {'.'.join(path)}，已跳过更新")
+
+
+def resolve_video_path(video_filename: str) -> Optional[Path]:
+  """
+  解析视频在本地的可能路径（用于读取分辨率）
+  """
+  candidates = [
+    Path("uploads") / video_filename,
+    Path("input") / video_filename,
+    Path("inputs") / video_filename
+  ]
+  for path in candidates:
+    if path.exists():
+      return path
+  return None
+
+
+def get_video_height(video_path: Path) -> Optional[int]:
+  """
+  使用ffprobe获取视频高度，失败时返回None
+  """
+  try:
+    result = subprocess.run(
+      [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=height",
+        "-of",
+        "json",
+        str(video_path)
+      ],
+      check=True,
+      capture_output=True,
+      text=True
+    )
+    data = json.loads(result.stdout or "{}")
+    streams = data.get("streams", [])
+    if streams:
+      return streams[0].get("height")
+  except Exception as e:
+    logger.warning(f"获取视频分辨率失败: {e}")
+  return None
+
+
+def calculate_seedvr2_scale(video_filename: str) -> float:
+  """
+  根据视频高度决定缩放比例：
+  - 高度>480：缩放到480p
+  - 否则：保持1.0
+  """
+  video_path = resolve_video_path(video_filename)
+  if not video_path:
+    logger.warning("未找到视频本地文件，默认不缩放")
+    return 1.0
+  
+  height = get_video_height(video_path)
+  if not height:
+    logger.warning("无法获取视频高度，默认不缩放")
+    return 1.0
+  
+  if height > 480:
+    return round(480 / height, 4)
+  return 1.0
+
+
+def generate_seed() -> int:
+  """生成随机种子，避免工作流被跳过"""
+  return random.randint(1, 2 ** 63 - 1)
+
+
+def resolve_workflow_config(
+  data: SuperVideoRequest,
+  workflow_dir: Path,
+  safe_task_name: str
+):
+  """
+  根据请求参数解析工作流配置，便于后续扩展（如 seedvr2）
+  
+  Args:
+    data: 用户请求数据
+    workflow_dir: 工作流目录
+    safe_task_name: 安全的任务名称前缀
+  
+  Returns:
+    包含文件路径、类型名称、任务类型键和更新列表的配置
+  """
+  def flash_vsr_updates(req: SuperVideoRequest):
+    seed = generate_seed()
+    return [
+      ("4", ["inputs", "video"], req.video_filename),
+      ("6", ["inputs", "filename_prefix"], f"FlashVSR_{safe_task_name}"),
+      ("1", ["inputs", "seed"], seed)
+    ]
+  
+  def seedvr2_updates(req: SuperVideoRequest):
+    seed = generate_seed()
+    scale_by = calculate_seedvr2_scale(req.video_filename)
+    return [
+      ("19", ["inputs", "video"], req.video_filename),
+      ("9", ["inputs", "scale_by"], scale_by),
+      ("14", ["inputs", "seed"], seed),
+      ("10", ["inputs", "filename_prefix"], f"SeedVR2_{safe_task_name}")
+    ]
+  
+  workflow_profiles = {
+    "flash_vsr": {
+      "file": "FlashVSR1.1.json",
+      "type_name": "FlashVSR v1.1",
+      "workflow_type": "flash_vsr",
+      "update_builder": flash_vsr_updates
+    },
+    "seedvr2": {
+      "file": "SeedVR2.json",
+      "type_name": "SeedVR2",
+      "workflow_type": "seedvr2",
+      "update_builder": seedvr2_updates
+    },
+  }
+  
+  profile = workflow_profiles.get(data.workflow_key or "flash_vsr")
+  if not profile:
+    raise HTTPException(
+      status_code=400,
+      detail=f"不支持的工作流: {data.workflow_key}"
+    )
+  return {
+    "file_path": workflow_dir / profile["file"],
+    "type_name": profile["type_name"],
+    "workflow_type": profile["workflow_type"],
+    "updates": profile["update_builder"](data)
+  }
+
 
 
 def setup_super_video_routes(
@@ -122,15 +288,11 @@ def setup_super_video_routes(
     
     ## 参数说明
     - **task_name**: 任务名称（必填）
-    - **model_name**: 放大模型选择
-      - `RealESRGAN_x4plus.pth`: 标准RealESRGAN模型，平衡质量和速度
-      - `4x-UltraSharpV2.safetensors`: Ultra Sharp V2模型，更锐利的细节
-      - `FlashVSR`: FlashVSR超快速视频超分辨率模型，采用扩散模型技术
+    - **model_name**: 放大模型选择（当前支持 FlashVSR-v1.1）
     - **video_filename**: 已上传的视频文件名（通过 /upload 接口获取）
-    - **processing_option**: 处理选项（可选，默认为super_resolution）
-      - `denoise`: 降噪处理
-      - `super_resolution`: 超分辨率/去模糊
-      - `portrait_enhancement`: 人物增强（使用GFPGAN Face Enhancer）
+    - **workflow_key**: 工作流选择
+      - `flash_vsr`（默认）
+      - `seedvr2`（根据视频高度>480自动缩放到480p，否则保持1.0）
     
     ## 使用流程
     1. 先调用 `/upload` 接口上传视频文件
@@ -141,19 +303,13 @@ def setup_super_video_routes(
     返回任务ID，可通过WebSocket或任务查询接口获取处理结果
     """
     try:
-      # 根据处理选项和模型名称选择工作流
-      if data.processing_option == "portrait_enhancement":
-        # 人物增强工作流
-        workflow_file = workflow_dir / "faceEnch.json"
-        workflow_type_name = "人物增强"
-      elif data.model_name == "FlashVSR":
-        # FlashVSR 工作流
-        workflow_file = workflow_dir / "FlashVSR.json"
-        workflow_type_name = "FlashVSR"
-      else:
-        # 默认超分辨率工作流
-        workflow_file = workflow_dir / "SuperVideo.json"
-        workflow_type_name = "超分辨率"
+      # 使用统一配置解析，便于扩展新的工作流（如 seedvr2）
+      safe_task_name = "".join(
+        c for c in data.task_name if c.isalnum() or c in (' ', '-', '_')
+      ).strip()
+      workflow_config = resolve_workflow_config(data, workflow_dir, safe_task_name)
+      workflow_file = workflow_config["file_path"]
+      workflow_type_name = workflow_config["type_name"]
       
       if not workflow_file.exists():
         raise HTTPException(
@@ -164,41 +320,8 @@ def setup_super_video_routes(
       with open(workflow_file, 'r', encoding='utf-8') as f:
         workflow = json.load(f)
       
-      # 使用任务名称作为文件名前缀
-      safe_task_name = "".join(c for c in data.task_name if c.isalnum() or c in (' ', '-', '_')).strip()
-      
-      # 根据不同工作流更新参数
-      if data.processing_option == "portrait_enhancement":
-        # faceEnch.json 工作流参数设置
-        # 节点16: VHS_LoadVideoFFmpeg - 加载视频
-        if "16" in workflow and "inputs" in workflow["16"]:
-          workflow["16"]["inputs"]["video"] = data.video_filename
-        
-        # 节点5: VHS_VideoCombine - 设置输出文件名前缀
-        if "5" in workflow and "inputs" in workflow["5"]:
-          workflow["5"]["inputs"]["filename_prefix"] = f"FaceEnhanced_{safe_task_name}"
-      elif data.model_name == "FlashVSR":
-        # FlashVSR工作流参数设置
-        # 节点12: VHS_LoadVideo - 加载视频
-        if "12" in workflow and "inputs" in workflow["12"]:
-          workflow["12"]["inputs"]["video"] = data.video_filename
-        
-        # 节点14: VHS_VideoCombine - 设置输出文件名前缀
-        if "14" in workflow and "inputs" in workflow["14"]:
-          workflow["14"]["inputs"]["filename_prefix"] = f"FlashVSR_{safe_task_name}"
-      else:
-        # SuperVideo工作流参数设置（RealESRGAN/UltraSharp）
-        # 节点1: VHS_LoadVideo - 加载视频
-        if "1" in workflow and "inputs" in workflow["1"]:
-          workflow["1"]["inputs"]["video"] = data.video_filename
-        
-        # 节点3: UpscaleModelLoader - 加载放大模型
-        if "3" in workflow and "inputs" in workflow["3"]:
-          workflow["3"]["inputs"]["model_name"] = data.model_name
-        
-        # 节点5: VHS_VideoCombine - 设置输出文件名前缀
-        if "5" in workflow and "inputs" in workflow["5"]:
-          workflow["5"]["inputs"]["filename_prefix"] = f"SuperVideo_{safe_task_name}"
+      # 根据配置批量更新节点参数
+      apply_workflow_updates(workflow, workflow_config["updates"])
       
       # 提交到ComfyUI
       logger.info(f"准备提交工作流到ComfyUI: {workflow_file.name}")
@@ -242,11 +365,7 @@ def setup_super_video_routes(
         )
       
       # 添加任务到管理器
-      workflow_type_key = (
-        "portrait_enhancement" if data.processing_option == "portrait_enhancement"
-        else "flash_vsr" if data.model_name == "FlashVSR"
-        else "super_video"
-      )
+      workflow_type_key = workflow_config["workflow_type"]
       task_manager.add_task(prompt_id, {
         "task_id": prompt_id,
         "prompt_id": prompt_id,
@@ -256,7 +375,6 @@ def setup_super_video_routes(
           "task_name": data.task_name,
           "model_name": data.model_name,
           "video_filename": data.video_filename,
-          "processing_option": data.processing_option,
           "workflow": workflow_type_name
         }
       })
@@ -267,7 +385,6 @@ def setup_super_video_routes(
       logger.info(f"📝 {workflow_type_name}任务已提交: {prompt_id}")
       logger.info(f"   任务名称: {data.task_name}")
       logger.info(f"   视频文件: {data.video_filename}")
-      logger.info(f"   处理选项: {data.processing_option}")
       logger.info(f"   放大模型: {data.model_name}")
       logger.info(f"   工作流类型: {workflow_type_name}")
       

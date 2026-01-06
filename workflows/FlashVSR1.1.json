@@ -1,0 +1,100 @@
+{
+  "1": {
+    "inputs": {
+      "scale": 4,
+      "color_fix": true,
+      "tiled_vae": true,
+      "tiled_dit": true,
+      "tile_size": 256,
+      "tile_overlap": 24,
+      "unload_dit": false,
+      "sparse_ratio": 2,
+      "kv_ratio": 3,
+      "local_range": 11,
+      "seed": 1121878918032616,
+      "pipe": [
+        "2",
+        0
+      ],
+      "frames": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "FlashVSRNodeAdv",
+    "_meta": {
+      "title": "FlashVSR Ultra-Fast (Advanced)"
+    }
+  },
+  "2": {
+    "inputs": {
+      "model": "FlashVSR-v1.1",
+      "mode": "full",
+      "alt_vae": "none",
+      "force_offload": true,
+      "precision": "bf16",
+      "device": "auto",
+      "attention_mode": "block_sparse_attention"
+    },
+    "class_type": "FlashVSRInitPipe",
+    "_meta": {
+      "title": "FlashVSR Init Pipeline"
+    }
+  },
+  "4": {
+    "inputs": {
+      "video": "IMG-2025-05-27-16-56-130-1（原视频）.mp4",
+      "force_rate": 0,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 0,
+      "start_time": 0,
+      "format": "AnimateDiff"
+    },
+    "class_type": "VHS_LoadVideoFFmpeg",
+    "_meta": {
+      "title": "Load Video FFmpeg (Upload) 🎥🅥🅗🅢"
+    }
+  },
+  "6": {
+    "inputs": {
+      "frame_rate": [
+        "7",
+        0
+      ],
+      "loop_count": 0,
+      "filename_prefix": "safone_FlashVSR_",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "1",
+        0
+      ],
+      "audio": [
+        "4",
+        2
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "7": {
+    "inputs": {
+      "video_info": [
+        "4",
+        3
+      ]
+    },
+    "class_type": "VHS_VideoInfo",
+    "_meta": {
+      "title": "Video Info 🎥🅥🅗🅢"
+    }
+  }
+}
