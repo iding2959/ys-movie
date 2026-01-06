@@ -1,0 +1,888 @@
+{
+  "16": {
+    "inputs": {
+      "image": "ComfyUI_00090_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Start Frame (Optional)"
+    }
+  },
+  "26": {
+    "inputs": {
+      "ckpt_name": "wan2.2-rapid-mega-aio-v9.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint Original"
+    }
+  },
+  "32": {
+    "inputs": {
+      "shift": 8,
+      "model": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingSD3",
+    "_meta": {
+      "title": "采样算法（SD3）"
+    }
+  },
+  "39": {
+    "inputs": {
+      "frame_rate": [
+        "44",
+        0
+      ],
+      "loop_count": 0,
+      "filename_prefix": "wanvideo/faborohacks",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "100",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "44": {
+    "inputs": {
+      "value": 16
+    },
+    "class_type": "Float",
+    "_meta": {
+      "title": "Frame Rate"
+    }
+  },
+  "57": {
+    "inputs": {
+      "mode": "Manual",
+      "width": 480,
+      "height": 832,
+      "auto_detect": true,
+      "rescale_mode": "resolution",
+      "rescale_value": 2.27866357593825,
+      "input_image": [
+        "16",
+        0
+      ]
+    },
+    "class_type": "ResolutionMaster",
+    "_meta": {
+      "title": "Resolution Master"
+    }
+  },
+  "58": {
+    "inputs": {
+      "width": [
+        "57",
+        0
+      ],
+      "height": [
+        "57",
+        1
+      ],
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "device": "cpu",
+      "image": [
+        "16",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "60": {
+    "inputs": {
+      "value": 81
+    },
+    "class_type": "Int",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "65": {
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "66": {
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "69": {
+    "inputs": {
+      "unet_name": "wan2.2-rapid-mega-aio-v7-Q4_K.gguf"
+    },
+    "class_type": "UnetLoaderGGUF",
+    "_meta": {
+      "title": "Unet Loader (GGUF)"
+    }
+  },
+  "83": {
+    "inputs": {
+      "value": -846327410058050
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "整数"
+    }
+  },
+  "84": {
+    "inputs": {
+      "value": -386935127149834
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "整数"
+    }
+  },
+  "85": {
+    "inputs": {
+      "frame_rate": [
+        "44",
+        0
+      ],
+      "loop_count": 0,
+      "filename_prefix": "AnimateDiff",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
+      "images": [
+        "70:11",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "86": {
+    "inputs": {
+      "frame_rate": [
+        "44",
+        0
+      ],
+      "loop_count": 0,
+      "filename_prefix": "AnimateDiff",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
+      "images": [
+        "76:11",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "87": {
+    "inputs": {
+      "value": 941604639369175
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "整数"
+    }
+  },
+  "89": {
+    "inputs": {
+      "frame_rate": [
+        "44",
+        0
+      ],
+      "loop_count": 0,
+      "filename_prefix": "AnimateDiff",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
+      "images": [
+        "88:11",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "100": {
+    "inputs": {
+      "method": "mkl",
+      "strength": 1,
+      "multithread": true,
+      "image_ref": [
+        "16",
+        0
+      ],
+      "image_target": [
+        "88:88",
+        0
+      ]
+    },
+    "class_type": "ColorMatch",
+    "_meta": {
+      "title": "Color Match"
+    }
+  },
+  "115": {
+    "inputs": {
+      "aspect_ratio": "original",
+      "proportional_width": 1,
+      "proportional_height": 1,
+      "fit": "letterbox",
+      "method": "lanczos",
+      "round_to_multiple": "8",
+      "scale_to_side": "longest",
+      "scale_to_length": [
+        "116",
+        0
+      ],
+      "background_color": "#000000"
+    },
+    "class_type": "LayerUtility: ImageScaleByAspectRatio V2",
+    "_meta": {
+      "title": "图层工具：按宽高比缩放 V2"
+    }
+  },
+  "116": {
+    "inputs": {
+      "value": 832
+    },
+    "class_type": "Int",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "120": {
+    "inputs": {
+      "value": 4
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "steps"
+    }
+  },
+  "70:34": {
+    "inputs": {
+      "num_frames": 81,
+      "empty_frame_level": 0.5,
+      "start_index": 0,
+      "end_index": -1,
+      "start_image": [
+        "58",
+        0
+      ]
+    },
+    "class_type": "WanVideoVACEStartToEndFrame",
+    "_meta": {
+      "title": "WanVideo VACE Start To End Frame"
+    }
+  },
+  "70:10": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "26",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt (leave blank cuz 1 CFG)"
+    }
+  },
+  "70:9": {
+    "inputs": {
+      "text": [
+        "70:70",
+        0
+      ],
+      "clip": [
+        "26",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "70:28": {
+    "inputs": {
+      "width": [
+        "58",
+        1
+      ],
+      "height": [
+        "58",
+        2
+      ],
+      "length": 81,
+      "batch_size": 1,
+      "strength": 1,
+      "positive": [
+        "70:9",
+        0
+      ],
+      "negative": [
+        "70:10",
+        0
+      ],
+      "vae": [
+        "26",
+        2
+      ],
+      "control_video": [
+        "70:34",
+        0
+      ],
+      "control_masks": [
+        "70:34",
+        1
+      ]
+    },
+    "class_type": "WanVaceToVideo",
+    "_meta": {
+      "title": "WanVaceToVideo"
+    }
+  },
+  "70:8": {
+    "inputs": {
+      "seed": [
+        "83",
+        0
+      ],
+      "steps": [
+        "120",
+        0
+      ],
+      "cfg": 1,
+      "sampler_name": "ipndm",
+      "scheduler": "sgm_uniform",
+      "denoise": 1,
+      "model": [
+        "32",
+        0
+      ],
+      "positive": [
+        "70:28",
+        0
+      ],
+      "negative": [
+        "70:28",
+        1
+      ],
+      "latent_image": [
+        "70:28",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "70:70": {
+    "inputs": {
+      "text": "In a softly lit bedroom, she lies comfortably on a bed. The atmosphere is serene, the sheets crisp and inviting. She is dressed in a casual white outfit, relaxing in the tranquil environment."
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text"
+    }
+  },
+  "70:59": {
+    "inputs": {
+      "split_index": -1,
+      "images": [
+        "70:11",
+        0
+      ]
+    },
+    "class_type": "VHS_SplitImages",
+    "_meta": {
+      "title": "Split Images 🎥🅥🅗🅢"
+    }
+  },
+  "70:11": {
+    "inputs": {
+      "samples": [
+        "70:8",
+        0
+      ],
+      "vae": [
+        "26",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "70:91": {
+    "inputs": {
+      "start_index": 71,
+      "num_frames": 10,
+      "images": [
+        "70:11",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "76:10": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "26",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt (leave blank cuz 1 CFG)"
+    }
+  },
+  "76:9": {
+    "inputs": {
+      "text": [
+        "76:70",
+        0
+      ],
+      "clip": [
+        "26",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "76:28": {
+    "inputs": {
+      "width": [
+        "58",
+        1
+      ],
+      "height": [
+        "58",
+        2
+      ],
+      "length": 81,
+      "batch_size": 1,
+      "strength": 1,
+      "positive": [
+        "76:9",
+        0
+      ],
+      "negative": [
+        "76:10",
+        0
+      ],
+      "vae": [
+        "26",
+        2
+      ],
+      "control_video": [
+        "76:34",
+        0
+      ],
+      "control_masks": [
+        "76:34",
+        1
+      ]
+    },
+    "class_type": "WanVaceToVideo",
+    "_meta": {
+      "title": "WanVaceToVideo"
+    }
+  },
+  "76:8": {
+    "inputs": {
+      "seed": [
+        "84",
+        0
+      ],
+      "steps": [
+        "120",
+        0
+      ],
+      "cfg": 1,
+      "sampler_name": "ipndm",
+      "scheduler": "sgm_uniform",
+      "denoise": 1,
+      "model": [
+        "32",
+        0
+      ],
+      "positive": [
+        "76:28",
+        0
+      ],
+      "negative": [
+        "76:28",
+        1
+      ],
+      "latent_image": [
+        "76:28",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "76:70": {
+    "inputs": {
+      "text": "She shifts her position slightly, maintaining a sense of grace and ease. Her gaze is contemplative, as if lost in thought. The background is calm, with a hint of decor adding to the peaceful setting."
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text"
+    }
+  },
+  "76:59": {
+    "inputs": {
+      "split_index": -1,
+      "images": [
+        "76:11",
+        0
+      ]
+    },
+    "class_type": "VHS_SplitImages",
+    "_meta": {
+      "title": "Split Images 🎥🅥🅗🅢"
+    }
+  },
+  "76:34": {
+    "inputs": {
+      "num_frames": 81,
+      "empty_frame_level": 0.5,
+      "start_index": 0,
+      "end_index": -1,
+      "start_image": [
+        "70:91",
+        0
+      ]
+    },
+    "class_type": "WanVideoVACEStartToEndFrame",
+    "_meta": {
+      "title": "WanVideo VACE Start To End Frame"
+    }
+  },
+  "76:11": {
+    "inputs": {
+      "samples": [
+        "76:8",
+        0
+      ],
+      "vae": [
+        "26",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "76:88": {
+    "inputs": {
+      "inputcount": 2,
+      "Update inputs": null,
+      "image_1": [
+        "70:11",
+        0
+      ],
+      "image_2": [
+        "76:92",
+        0
+      ]
+    },
+    "class_type": "ImageBatchMulti",
+    "_meta": {
+      "title": "Image Batch Multi"
+    }
+  },
+  "76:91": {
+    "inputs": {
+      "start_index": 71,
+      "num_frames": 10,
+      "images": [
+        "76:11",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "76:92": {
+    "inputs": {
+      "batch_index": 10,
+      "length": 71,
+      "image": [
+        "76:11",
+        0
+      ]
+    },
+    "class_type": "ImageFromBatch",
+    "_meta": {
+      "title": "从批次获取图像"
+    }
+  },
+  "88:34": {
+    "inputs": {
+      "num_frames": 81,
+      "empty_frame_level": 0.5,
+      "start_index": 0,
+      "end_index": -1,
+      "start_image": [
+        "76:91",
+        0
+      ]
+    },
+    "class_type": "WanVideoVACEStartToEndFrame",
+    "_meta": {
+      "title": "WanVideo VACE Start To End Frame"
+    }
+  },
+  "88:10": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "26",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt (leave blank cuz 1 CFG)"
+    }
+  },
+  "88:9": {
+    "inputs": {
+      "text": [
+        "88:70",
+        0
+      ],
+      "clip": [
+        "26",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "88:28": {
+    "inputs": {
+      "width": [
+        "58",
+        1
+      ],
+      "height": [
+        "58",
+        2
+      ],
+      "length": 81,
+      "batch_size": 1,
+      "strength": 1,
+      "positive": [
+        "88:9",
+        0
+      ],
+      "negative": [
+        "88:10",
+        0
+      ],
+      "vae": [
+        "26",
+        2
+      ],
+      "control_video": [
+        "88:34",
+        0
+      ],
+      "control_masks": [
+        "88:34",
+        1
+      ]
+    },
+    "class_type": "WanVaceToVideo",
+    "_meta": {
+      "title": "WanVaceToVideo"
+    }
+  },
+  "88:8": {
+    "inputs": {
+      "seed": [
+        "87",
+        0
+      ],
+      "steps": [
+        "120",
+        0
+      ],
+      "cfg": 1,
+      "sampler_name": "ipndm",
+      "scheduler": "sgm_uniform",
+      "denoise": 1,
+      "model": [
+        "32",
+        0
+      ],
+      "positive": [
+        "88:28",
+        0
+      ],
+      "negative": [
+        "88:28",
+        1
+      ],
+      "latent_image": [
+        "88:28",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "88:70": {
+    "inputs": {
+      "text": "Her posture is relaxed yet elegant, as she leans on one arm. The camera captures the gentle curves and lines of her form, enhancing the sense of calm and relaxation in the room."
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text"
+    }
+  },
+  "88:11": {
+    "inputs": {
+      "samples": [
+        "88:8",
+        0
+      ],
+      "vae": [
+        "26",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "88:59": {
+    "inputs": {
+      "split_index": -1,
+      "images": [
+        "88:11",
+        0
+      ]
+    },
+    "class_type": "VHS_SplitImages",
+    "_meta": {
+      "title": "Split Images 🎥🅥🅗🅢"
+    }
+  },
+  "88:91": {
+    "inputs": {
+      "start_index": -1,
+      "num_frames": 10,
+      "images": [
+        "88:11",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "88:92": {
+    "inputs": {
+      "batch_index": 10,
+      "length": 71,
+      "image": [
+        "88:11",
+        0
+      ]
+    },
+    "class_type": "ImageFromBatch",
+    "_meta": {
+      "title": "从批次获取图像"
+    }
+  },
+  "88:88": {
+    "inputs": {
+      "inputcount": 2,
+      "Update inputs": null,
+      "image_1": [
+        "76:88",
+        0
+      ],
+      "image_2": [
+        "88:92",
+        0
+      ]
+    },
+    "class_type": "ImageBatchMulti",
+    "_meta": {
+      "title": "Image Batch Multi"
+    }
+  }
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComfyUI API 调试工具</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h2>📡 服务器状态</h2>
+      <div class="server-status" id="serverStatus">
+        <div class="status-item">
+          <span>ComfyUI服务器</span>
+          <span id="serverAddress">--</span>
+        </div>
+        <div class="status-item">
+          <span>连接状态</span>
+          <span><span id="connectionStatus">检查中</span><span id="statusIndicator" class="status-indicator"></span></span>
+        </div>
+        <div class="status-item">
+          <span>WebSocket</span>
+          <span id="wsStatus">未连接</span>
+        </div>
+      </div>
+      
+      <button onclick="runDiagnosis()" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer;">
+        🔧 诊断连接问题
+      </button>
+      
+      <button onclick="location.href='/static/specialized/index.html'" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer;">
+        🎨 专用API测试
+      </button>
+      
+      <button onclick="showStatusExamples()" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer;">
+        📊 查看所有状态示例
+      </button>
+      
+      <h2>📊 队列信息</h2>
+      <div class="queue-info" id="queueInfo">
+        <div class="queue-stat">
+          <span>运行中</span>
+          <span class="queue-number" id="queueRunning">0</span>
+        </div>
+        <div class="queue-stat">
+          <span>等待中</span>
+          <span class="queue-number" id="queuePending">0</span>
+        </div>
+      </div>
+      
+      <h2>🎨 工作流列表</h2>
+      <div class="workflow-list" id="workflowList">
+        <p style="color: #999; text-align: center;">暂无工作流</p>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <h1>
+        <span>🚀 ComfyUI API 调试工具</span>
+      </h1>
+      
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('workflow')">工作流</button>
+        <button class="tab" onclick="switchTab('tasks')">任务列表</button>
+      </div>
+      
+      <div class="tab-content active" id="workflowTab">
+        <div class="workflow-section">
+          <h2>📤 上传工作流</h2>
+          <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <p style="font-size: 50px; margin-bottom: 20px;">📁</p>
+            <p style="color: #666;">点击或拖拽工作流JSON文件到此处</p>
+            <p style="color: #999; font-size: 14px; margin-top: 10px;">支持 ComfyUI 导出的 API 格式工作流</p>
+            <input type="file" id="fileInput" accept=".json">
+          </div>
+          
+          <div class="workflow-editor" id="workflowEditor" style="display: none;">
+            <h3>工作流预览</h3>
+            <div class="json-viewer" id="workflowPreview"></div>
+          </div>
+          
+          <div class="param-editor" id="paramEditor" style="display: none;">
+            <h3>参数设置</h3>
+            <div id="paramList"></div>
+            <button onclick="submitWorkflow()" id="submitBtn" style="margin-top: 20px;">
+              🚀 提交任务
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="tasksTab">
+        <h2>📋 任务列表（包含历史记录）</h2>
+        <div class="task-list" id="taskList"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal" id="resultModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+      <h2>任务结果</h2>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+  
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+[project]
+name = "ComfyUI-API"
+version = "0.1.0"
+description = "ComfyUI API DEMO"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "aiohttp>=3.13.2",
+    "fastapi>=0.121.0",
+    "pillow>=11.3.0",
+    "pydantic-settings>=2.11.0",
+    "python-multipart>=0.0.20",
+    "uvicorn[standard]>=0.38.0",
+    "websocket>=0.2.1",
+]

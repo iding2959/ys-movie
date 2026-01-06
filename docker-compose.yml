@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  comfyui-api:
+    image: comfyui-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: comfyui-api
+    ports:
+      - "14785:12321"
+    environment:
+      # ComfyUI 服务器配置
+      - COMFYUI_COMFYUI_SERVER=${COMFYUI_SERVER:-192.168.48.123:8188}
+      - COMFYUI_COMFYUI_PROTOCOL=${COMFYUI_PROTOCOL:-http}
+      - COMFYUI_COMFYUI_WS_PROTOCOL=${COMFYUI_WS_PROTOCOL:-ws}
+      # API 服务器配置
+      - COMFYUI_API_HOST=0.0.0.0
+      - COMFYUI_API_PORT=12321
+      # 日志配置
+      - COMFYUI_LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      # 持久化数据目录
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      - ./workflows:/app/workflows
+      # 静态文件（可选，如果需要修改前端）
+      - ./static:/app/static
+    restart: unless-stopped
+    networks:
+      - comfyui-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12321/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  comfyui-network:
+    driver: bridge
+

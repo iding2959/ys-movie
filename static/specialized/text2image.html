@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文生图 API 测试</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+    
+    .form-group select {
+      cursor: pointer;
+      background-color: white;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+    
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .result-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+    
+    .result-container.show {
+      display: block;
+    }
+    
+    .result-image {
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 6px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .status-submitted { background: #ffd93d; color: #333; }
+    .status-running { background: #6bcf7f; color: white; }
+    .status-completed { background: #4caf50; color: white; }
+    .status-failed { background: #f44336; color: white; }
+    
+    .aspect-ratio-hint {
+      margin-top: 8px;
+      padding: 10px;
+      background: #f5f7fa;
+      border-left: 3px solid #667eea;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+    }
+    
+    .aspect-ratio-hint strong {
+      color: #667eea;
+    }
+    
+    .size-info {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 2px 8px;
+      background: #e8eaf6;
+      border-radius: 12px;
+      font-size: 12px;
+      color: #667eea;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+      <a href="index.html" style="text-decoration: none; color: #667eea;">← 返回列表</a>
+      <a href="/" style="text-decoration: none; color: #667eea;">返回主页 →</a>
+    </div>
+    
+    <h1 style="text-align: center; margin-bottom: 10px;">📝 文生图 API 测试</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 40px;">基于 Qwen Image Distill 模型</p>
+    
+    <div class="form-container">
+      <form id="text2imageForm">
+        <div class="form-group">
+          <label for="prompt">✍️ 提示词 *</label>
+          <textarea 
+            id="prompt" 
+            name="prompt" 
+            required
+            placeholder="输入图像描述，例如：A beautiful landscape with mountains and rivers at sunset"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="negative_prompt">🚫 负面提示词</label>
+          <textarea 
+            id="negative_prompt" 
+            name="negative_prompt"
+            placeholder="输入不想要的元素，例如：blurry, low quality, distorted"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="aspectRatio">📐 图片尺寸比例</label>
+          <select id="aspectRatio" name="aspectRatio">
+            <option value="custom">🎨 自定义</option>
+            
+            <optgroup label="━━━ 标准比例 ━━━">
+              <option value="1280x720" selected>📺 标准1K横屏 (1280×720) - 1K直出</option>
+              <option value="720x1280">📱 标准1K竖屏 (720×1280) - 2K放大</option>
+              <option value="2560x1440">🖥️ 标准2K横屏 (2560×1440) - 2K放大</option>
+              <option value="1440x2560">📱 标准2K竖屏 (1440×2560) - 2K放大</option>
+            </optgroup>
+            
+            <optgroup label="━━━ 超宽屏 21:9 ━━━">
+              <option value="1512x648">🎬 21:9-1K横屏 (1512×648) - 1K直出</option>
+              <option value="2560x1080">🎬 21:9-2K横屏 (2560×1080) - 2K放大</option>
+              <option value="464x1080">📱 9:21-1K竖屏 (464×1080) - 1K直出</option>
+              <option value="1080x2560">📱 9:21-2K竖屏 (1080×2560) - 2K放大</option>
+            </optgroup>
+            
+            <optgroup label="━━━ 全高清 16:9 ━━━">
+              <option value="1536x864">🎥 16:9-1K横屏 (1536×864) - 1K直出</option>
+              <option value="1920x1080">🎥 16:9-2K横屏 (1920×1080) - 2K放大</option>
+              <option value="608x1080">📱 9:16-1K竖屏 (608×1080) - 1K直出</option>
+              <option value="1080x1920">📱 9:16-2K竖屏 (1080×1920) - 2K放大</option>
+            </optgroup>
+            
+            <optgroup label="━━━ 传统比例 4:3 ━━━">
+              <option value="1024x768">🖼️ 4:3横屏 (1024×768) - 1K直出</option>
+              <option value="768x1024">📱 3:4竖屏 (768×1024) - 1K直出</option>
+              <option value="2048x1536">🖼️ 4:3-2K横屏 (2048×1536) - 2K放大</option>
+              <option value="1536x2048">📱 3:4-2K竖屏 (1536×2048) - 2K放大</option>
+            </optgroup>
+            
+            <optgroup label="━━━ 方形 1:1 ━━━">
+              <option value="1080x1080">⬛ 1:1方形 (1080×1080) - 1K直出</option>
+              <option value="2160x2160">⬛ 1:1-2K方形 (2160×2160) - 2K放大</option>
+            </optgroup>
+          </select>
+          <div class="aspect-ratio-hint">
+            💡 <strong>提示：</strong>宽度≤1536且高度≤1080使用<strong>1K直出流程</strong>（速度快），
+            超过阈值自动使用<strong>2K放大流程</strong>（质量更高，需要先生成基础图再4x放大）
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="width">📏 宽度 (px)</label>
+            <input type="number" id="width" name="width" value="1280" min="256" max="2560" step="8">
+          </div>
+          
+          <div class="form-group">
+            <label for="height">📐 高度 (px)</label>
+            <input type="number" id="height" name="height" value="720" min="256" max="2560" step="8">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="steps">🎯 采样步数</label>
+            <input type="number" id="steps" name="steps" value="10" min="1" max="100">
+          </div>
+          
+          <div class="form-group">
+            <label for="seed">🎲 随机种子 (-1为随机)</label>
+            <input type="number" id="seed" name="seed" value="-1">
+          </div>
+        </div>
+        
+        <button type="submit" class="submit-btn" id="submitBtn">
+          🚀 生成图像
+        </button>
+      </form>
+    </div>
+    
+    <div class="result-container" id="resultContainer">
+      <h2>生成结果</h2>
+      <div id="taskInfo" style="margin: 20px 0;">
+        <p><strong>任务ID:</strong> <span id="taskId">-</span></p>
+        <p><strong>状态:</strong> <span id="taskStatus" class="status-badge status-submitted">提交中</span></p>
+        <div id="progressText" style="color: #666; margin-top: 15px; padding: 15px; background: #f5f7fa; border-radius: 8px; line-height: 1.8; font-size: 14px;"></div>
+      </div>
+      
+      <div id="imageResult"></div>
+    </div>
+  </div>
+  
+  <script src="text2image.js"></script>
+</body>
+</html>
+

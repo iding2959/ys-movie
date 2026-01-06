@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>专用工作流API测试</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .api-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .api-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .api-card h2 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+    
+    .api-card p {
+      margin: 5px 0;
+      opacity: 0.9;
+    }
+    
+    .api-card .tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-right: 8px;
+      margin-top: 10px;
+    }
+    
+    .back-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .back-button:hover {
+      background: #764ba2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-button">← 返回主页</a>
+    
+    <h1 style="text-align: center; margin-bottom: 40px;">🎨 专用工作流API测试</h1>
+    
+    <div class="api-card" onclick="location.href='text2image.html'">
+      <h2>📝 文生图 API</h2>
+      <p>基于 Qwen Image Distill 模型的快速文生图接口</p>
+      <p style="font-size: 14px; margin-top: 15px;">支持自定义尺寸、步数和种子值，自动处理工作流细节</p>
+      <div>
+        <span class="tag">文本生成</span>
+        <span class="tag">图像输出</span>
+        <span class="tag">快速响应</span>
+      </div>
+    </div>
+    
+    <div class="api-card" onclick="location.href='wan22_i2v.html'" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+      <h2>🎬 Wan2.2 图生视频 API</h2>
+      <p>智能图生视频接口，支持5-30秒视频生成，自动片段拼接</p>
+      <p style="font-size: 14px; margin-top: 15px;">上传一张图片即可生成流畅的视频，支持自定义时长、分辨率和帧率</p>
+      <div>
+        <span class="tag">图片上传</span>
+        <span class="tag">视频生成</span>
+        <span class="tag">智能拼接</span>
+        <span class="tag">5-30秒</span>
+      </div>
+    </div>
+    
+    <div class="api-card" onclick="location.href='super_video.html'" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+      <h2>🎬 SuperVideo 视频放大 API</h2>
+      <p>AI视频超分辨率处理，将低分辨率视频放大4倍</p>
+      <p style="font-size: 14px; margin-top: 15px;">支持多种放大模型，自动保留原视频的帧率和音频</p>
+      <div>
+        <span class="tag">视频上传</span>
+        <span class="tag">4x放大</span>
+        <span class="tag">多模型</span>
+        <span class="tag">保留音频</span>
+      </div>
+    </div>
+    
+    <div class="api-card" onclick="location.href='infinitetalk_i2v.html'" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+      <h2>🎭 InfiniteTalk 音频驱动视频 API</h2>
+      <p>音频驱动的口型同步视频生成，让静态图片开口说话</p>
+      <p style="font-size: 14px; margin-top: 15px;">上传人物图片和音频，生成口型同步的高质量视频，支持多种分辨率</p>
+      <div>
+        <span class="tag">图片上传</span>
+        <span class="tag">音频上传</span>
+        <span class="tag">口型同步</span>
+        <span class="tag">720p/480p</span>
+      </div>
+    </div>
+    
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 30px;">
+      <h3>📚 使用说明</h3>
+      <ul style="line-height: 2;">
+        <li>点击上方卡片进入对应API的测试页面</li>
+        <li>每个页面都提供了完整的参数配置和实时测试功能</li>
+        <li>生成的结果会自动显示在页面中</li>
+        <li>所有任务支持实时状态查询和结果预览</li>
+      </ul>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px; color: #666;">
+      <p>ComfyUI API 中间件 v2.0.0</p>
+      <p style="font-size: 12px;">专用工作流API集合</p>
+    </div>
+  </div>
+</body>
+</html>
+
