@@ -1,6 +1,6 @@
 ### Comfy UI 指定GUP执行
 
-`CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=3 python main.py --listen 0.0.0.0 --port 8188 --enable-cors-header --max-upload-size 1073741824`
+`CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=2 python main.py --listen 0.0.0.0 --port 8188 --enable-cors-header --max-upload-size 1073741824`
 
 
 

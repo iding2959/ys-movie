@@ -198,6 +198,27 @@ if __name__ == "__main__":
     host=settings.api_host,
     port=settings.api_port,
     reload=True,
-    reload_dirs=[".", "core", "static"],  # 监控这些目录的变化
+    reload_dirs=["core"],  # 只监控核心代码目录
+    reload_excludes=[
+      "**/__pycache__/**",
+      "**/outputs/**",
+      "**/uploads/**",
+      "**/.git/**",
+      "**/node_modules/**",
+      "**/*.pyc",
+      "**/*.log",
+      "**/workflows/**",  # 工作流文件变化不触发重载
+      "**/docs/**",
+      "**/examples/**",
+      "**/*.md",
+      "**/uv.lock",
+      "**/pyproject.toml",
+      "**/docker-compose.yml",
+      "**/Dockerfile",
+      "**/DOCKER.md",
+      "**/systemctl.md",
+      "**/run.md",
+      "**/README.md"
+    ],
     log_level="info"
   )
