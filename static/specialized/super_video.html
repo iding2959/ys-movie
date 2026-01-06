@@ -7,838 +7,147 @@
   <link rel="icon" type="image/x-icon" href="/static/bitbug_favicon.ico">
   <link rel="icon" type="image/png" href="/static/favicon.png">
   <link rel="stylesheet" href="/static/style.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf5 100%);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    .container {
-      width: 100%;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header-section {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 25px 50px;
-      background: white;
-      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .logo-icon {
-      width: 70px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.3s ease;
-    }
-
-    .logo-icon img {
-      width: 70px;
-      height: 70px;
-      object-fit: contain;
-    }
-
-    .logo-icon:hover {
-      transform: scale(1.05);
-    }
-
-    .header-content {
-      flex: 1;
-    }
-
-    .header-title {
-      margin: 0;
-      font-size: 26px;
-      color: #2d3748;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .header-subtitle {
-      margin: 6px 0 0 0;
-      font-size: 14px;
-      color: #718096;
-      font-weight: 400;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 15px;
-    }
-
-    .action-btn {
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      width: 75px;
-      height: 75px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      padding: 10px;
-      position: relative;
-      overflow: hidden;
-      color: #4a5568;
-    }
-
-    .action-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 0;
-    }
-
-    .action-btn:hover {
-      border-color: #667eea;
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
-    }
-
-    .action-btn.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-color: transparent;
-      color: white;
-      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
-      transform: translateY(-2px);
-    }
-
-    .action-btn.loading {
-      cursor: default;
-      pointer-events: none;
-      opacity: 0.7;
-    }
-
-    .action-btn.loading .action-icon {
-      animation: spin 1s linear infinite;
-    }
-
-    .action-btn.success {
-      border-color: #48bb78;
-      color: #2f855a;
-    }
-
-    .action-btn.error {
-      border-color: #f56565;
-      color: #c53030;
-    }
-
-    .action-btn.success .action-text,
-    .action-btn.error .action-text {
-      color: inherit;
-    }
-
-    .action-icon {
-      font-size: 26px;
-      margin-bottom: 4px;
-      position: relative;
-      z-index: 1;
-      transition: transform 0.3s ease;
-    }
-
-    .action-btn:hover .action-icon {
-      transform: scale(1.1);
-    }
-
-    .action-text {
-      font-size: 12px;
-      font-weight: 600;
-      position: relative;
-      z-index: 1;
-      color: #4a5568;
-    }
-
-    .action-btn.active .action-text {
-      color: white;
-    }
-
-    .main-layout {
-      flex: 1;
-      width: 100%;
-      background: #f5f5f5;
-      padding: 40px 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .left-panel, .right-panel {
-      background: white;
-      border-radius: 16px;
-      padding: 35px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-      width: 90%;
-      max-width: 800px;
-      border: 1px solid rgba(102, 126, 234, 0.08);
-    }
-
-    #historyPanel {
-      display: none;
-      max-width: 1200px;
-    }
-
-    .section-title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 25px;
-      color: #2d3748;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      letter-spacing: -0.3px;
-    }
-
-    .form-group {
-      margin-bottom: 24px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 10px;
-      color: #4a5568;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .form-group label .required {
-      color: #f56565;
-      margin-left: 4px;
-    }
-
-    .form-group input[type="text"],
-    .form-group select {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      box-sizing: border-box;
-      background: #fafafa;
-    }
-
-    .form-group input[type="text"]:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #667eea;
-      background: white;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .video-container {
-      position: relative;
-      width: 100%;
-      height: 400px;
-      margin-bottom: 20px;
-      border-radius: 14px;
-      overflow: hidden;
-    }
-
-    .upload-area {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: 2px dashed #cbd5e0;
-      border-radius: 14px;
-      padding: 40px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: #f7fafc;
-      box-sizing: border-box;
-      opacity: 1;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .upload-area:hover {
-      border-color: #667eea;
-      background: linear-gradient(135deg, #f5f7ff 0%, #eef2ff 100%);
-      border-style: solid;
-    }
-
-    .upload-area.dragover {
-      border-color: #667eea;
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      border-style: solid;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-    }
-
-    .upload-area input[type="file"] {
-      display: none;
-    }
-
-    .file-info {
-      margin-top: 12px;
-      padding: 14px 18px;
-      background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
-      border-radius: 10px;
-      color: #276749;
-      font-size: 14px;
-      text-align: center;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(150, 230, 161, 0.3);
-    }
-
-    .video-preview {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-      z-index: 1;
-      background: #000;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .video-preview.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .video-preview video {
-      width: 100%;
-      height: 100%;
-      border-radius: 12px;
-      background: #000;
-      object-fit: contain;
-      display: block;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 16px;
-      background: #e0e0e0;
-      color: #999;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: not-allowed;
-      transition: all 0.3s;
-      margin-top: 20px;
-    }
-
-    .btn:not(:disabled) {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      cursor: pointer;
-    }
-
-    .btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-secondary {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .task-list {
-      max-height: 700px;
-      overflow-y: auto;
-      padding: 5px;
-    }
-
-    .task-list::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .task-list::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-
-    .task-list::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 4px;
-    }
-
-    .task-list::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-
-    .task-item {
-      background: #f9f9f9;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-left: 4px solid #667eea;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .task-item:hover {
-      background: #f0f0f0;
-      transform: translateX(5px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .task-item.completed {
-      border-left-color: #4caf50;
-    }
-
-    .task-item.failed {
-      border-left-color: #f44336;
-    }
-
-    .task-item.running {
-      border-left-color: #ff9800;
-    }
-
-    .task-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .task-name {
-      font-weight: bold;
-      font-size: 16px;
-      color: #333;
-    }
-
-    .task-status {
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .task-status.submitted,
-    .task-status.pending {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-
-    .task-status.running {
-      background: #fff3e0;
-      color: #f57c00;
-    }
-
-    .task-status.completed {
-      background: #e8f5e9;
-      color: #388e3c;
-    }
-
-    .task-status.failed {
-      background: #ffebee;
-      color: #d32f2f;
-    }
-
-    .task-details {
-      font-size: 14px;
-      color: #666;
-      margin-top: 8px;
-    }
-
-    .task-details div {
-      margin: 4px 0;
-    }
-
-    .task-result {
-      margin-top: 10px;
-      padding: 10px;
-      background: white;
-      border-radius: 6px;
-    }
-
-    .task-result video {
-      width: 100%;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-
-    .model-info {
-      margin-top: 10px;
-      padding: 12px;
-      background: #f5f5f5;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #666;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #999;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: #999;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      background: #e0e0e0;
-      border-radius: 2px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      animation: progress 2s ease-in-out infinite;
-    }
-
-    @keyframes progress {
-      0% { width: 0%; }
-      50% { width: 70%; }
-      100% { width: 100%; }
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    #toastContainer {
-      position: fixed;
-      top: 110px;
-      right: 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 10010;
-    }
-
-    .toast {
-      min-width: 220px;
-      max-width: 320px;
-      padding: 12px 18px;
-      border-radius: 10px;
-      background: rgba(45, 55, 72, 0.92);
-      color: #ffffff;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.3s ease;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .toast-success {
-      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    }
-
-    .toast-error {
-      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-    }
-
-    .toast-info {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-    }
-
-    .modal-content {
-      position: relative;
-      background: white;
-      border-radius: 12px;
-      max-width: 800px;
-      max-height: 90vh;
-      width: 90%;
-      overflow-y: auto;
-      padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      z-index: 10000;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: none;
-      border: none;
-      font-size: 32px;
-      color: #999;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: all 0.3s;
-    }
-
-    .modal-close:hover {
-      background: #f0f0f0;
-      color: #333;
-    }
-
-    .detail-section {
-      margin-bottom: 20px;
-    }
-
-    .detail-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: #333;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 10px;
-    }
-
-    .detail-info {
-      background: #f5f5f5;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-
-    .detail-info-item {
-      margin: 8px 0;
-      display: flex;
-      gap: 10px;
-    }
-
-    .detail-info-label {
-      font-weight: bold;
-      color: #666;
-      min-width: 80px;
-    }
-
-    .detail-video {
-      width: 100%;
-      border-radius: 8px;
-      margin-top: 10px;
-      background: #000;
-    }
-
-    .checkbox-option {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      padding: 12px;
-      background: white;
-      border-radius: 8px;
-      transition: all 0.3s;
-      border: 2px solid #e2e8f0;
-    }
-
-    .checkbox-option:hover {
-      border-color: #667eea;
-      background: #f7faff;
-      transform: translateX(3px);
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
-    }
-
-    .checkbox-option input[type="radio"]:checked + div {
-      color: #667eea;
-    }
-
-    .checkbox-option input[type="radio"]:checked ~ * {
-      font-weight: 600;
-    }
-  </style>
+  <link rel="stylesheet" href="/static/specialized/super_video.css">
 </head>
 <body>
   <div class="container">
-    <!-- Header区域 -->
-    <div class="header-section">
-      <div class="header-left">
-        <div class="logo-icon">
-          <img src="/static/favicon.png" alt="SuperVideo">
+    <div class="page">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-logo">
+            <img src="/static/favicon.png" alt="SuperVideo">
+          </div>
+          <div class="brand-title">画音智慧化处理平台</div>
         </div>
-        <div class="header-content">
-          <h1 class="header-title">画音智慧化处理平台</h1>
+        <div class="nav">
+          <button class="nav-btn active" onclick="switchTab('analysis')" id="analysisTab">视频超分</button>
+          <button class="nav-btn" onclick="switchTab('history')" id="historyTab">任务列表</button>
+          <button class="nav-btn" id="refreshBtn" type="button">刷新</button>
         </div>
       </div>
-      
-      <!-- 功能区切换按钮 -->
-      <div class="header-actions">
-        <button class="action-btn active" onclick="switchTab('analysis')" id="analysisTab">
-          <div class="action-icon">📊</div>
-          <div class="action-text">视频分析</div>
-        </button>
-        <button class="action-btn" onclick="switchTab('history')" id="historyTab">
-          <div class="action-icon">📋</div>
-          <div class="action-text">任务列表</div>
-        </button>
-        <button class="action-btn" id="refreshBtn" type="button">
-          <div class="action-icon">🔄</div>
-          <div class="action-text">刷新</div>
-        </button>
-      </div>
-    </div>
 
-    <!-- 功能内容区域 -->
-    <div class="main-layout">
-      <!-- 视频分析功能区 -->
-      <div class="left-panel" id="analysisPanel">
-        <div class="section-title">
-          <span>📤</span>
-          <span>视频分析</span>
-        </div>
+      <div class="layout">
+        <div class="panel" id="analysisPanel">
+          <div class="panel-header">
+            <div class="panel-title">工作台</div>
+            <div class="chip">SuperVideo</div>
+          </div>
 
-        <div class="form-group">
-          <label>任务名称</label>
-          <input type="text" id="taskNameInput" placeholder="任务名称" style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fafafa; box-sizing: border-box;">
-        </div>
-
-        <div class="form-group">
-          <label>上传视频<span class="required">*</span></label>
-          <div class="video-container">
-            <div class="upload-area" id="uploadArea">
-              <p style="font-size: 50px; margin: 0;">📁</p>
-              <p style="margin: 10px 0 5px 0;">上传或拖拽视频到此处</p>
-              <p style="font-size: 12px; color: #999; margin: 0;">
-                格式支持：MP4、AVI、MOV、MKV、WMV、FLV
-              </p>
-              <input type="file" id="videoInput" accept="video/*">
+          <div class="grid">
+            <div class="card">
+              <div class="field-label">任务名称</div>
+              <input class="input" type="text" id="taskNameInput" placeholder="任务名称">
             </div>
-            <div class="video-preview" id="videoPreview" style="display: none;">
-              <video controls id="previewVideo" style="width: 100%; border-radius: 8px;"></video>
+
+            <div class="card">
+              <div class="field-label">上传视频</div>
+              <div class="upload" id="uploadArea">
+                <div class="upload-inner">
+                  <div class="upload-icon">📁</div>
+                  <div>拖拽或点击上传</div>
+                </div>
+                <input type="file" id="videoInput" accept="video/*">
+              </div>
+              <div class="preview" id="videoPreview">
+                <div class="preview-head">预览</div>
+                <video controls id="previewVideo"></video>
+              </div>
+              <div class="actions" style="margin-top: 12px; display: none;" id="fileActions">
+                <button class="btn btn-ghost" id="changeVideoBtn">重新选择</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="field-label">处理选项</div>
+              <div class="pill-group">
+                <div class="pill-row">
+                  <label class="pill">
+                    <input type="radio" name="processingOption" id="denoiseCheck" value="denoise">
+                    <span class="pill-text">降噪</span>
+                  </label>
+                  <label class="pill">
+                    <input type="radio" name="processingOption" id="superResCheck" value="super_resolution">
+                    <span class="pill-text">去模糊/超分</span>
+                  </label>
+                  <label class="pill">
+                    <input type="radio" name="processingOption" id="portraitCheck" value="portrait_enhancement">
+                    <span class="pill-text">人物增强</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="field-label">模型选择</div>
+              <div class="model-grid">
+                <label class="model-card">
+                  <input class="model-radio" type="radio" name="modelSelect" value="SeedVR2">
+                  <div class="model-name">SeedVR2</div>
+                </label>
+                <label class="model-card">
+                  <input class="model-radio" type="radio" name="modelSelect" value="FlashVSR">
+                  <div class="model-name">FlashVSR</div>
+                </label>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="actions">
+                <button class="btn btn-primary" id="submitBtn" disabled>提交</button>
+              </div>
             </div>
           </div>
-          <div class="file-info" id="fileInfo" style="display: none;">
-            <span id="fileInfoText"></span>
-            <button id="changeVideoBtn" style="
-              margin-left: 15px;
-              padding: 8px 20px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              font-size: 13px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.3s;
-              box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'"
-               onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.3)'">
-              🔄 更换视频
-            </button>
+        </div>
+
+        <div class="panel" id="historyPanel" style="display: none;">
+          <div class="panel-header">
+            <div class="panel-title">任务列表</div>
+            <div class="chip" onclick="downloadTasks()" style="cursor: pointer;">下载</div>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label>处理选项</label>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 15px; background: #fafafa; border-radius: 10px; border: 2px solid #e2e8f0;">
-            <label class="checkbox-option" style="flex-direction: column; align-items: flex-start; min-height: 100px;">
-              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <input type="radio" name="processingOption" id="denoiseCheck" value="denoise" style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #667eea;">
-                <div style="font-weight: 600; color: #2d3748; font-size: 14px;">降噪</div>
+          <div class="task-list" id="taskList">
+            <div class="task-item">
+              <div class="task-header">
+                <div class="task-id">task_xxxxxx01</div>
+                <div class="status completed">完成</div>
               </div>
-              <div style="font-size: 12px; color: #718096; line-height: 1.5;">视频中移除噪点和干扰</div>
-            </label>
-            <label class="checkbox-option" style="flex-direction: column; align-items: flex-start; min-height: 100px;">
-              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <input type="radio" name="processingOption" id="superResCheck" value="super_resolution" style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #667eea;">
-                <div style="font-weight: 600; color: #2d3748; font-size: 14px;">去模糊/超分</div>
+              <div class="task-meta">
+                <span>SeedVR2</span>
+                <span>超分</span>
               </div>
-              <div style="font-size: 12px; color: #718096; line-height: 1.5;">增强视频画质清晰度</div>
-            </label>
-            <label class="checkbox-option" style="flex-direction: column; align-items: flex-start; min-height: 100px;">
-              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <input type="radio" name="processingOption" id="portraitCheck" value="portrait_enhancement" style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #667eea;">
-                <div style="font-weight: 600; color: #2d3748; font-size: 14px;">人物增强</div>
+            </div>
+            <div class="task-item">
+              <div class="task-header">
+                <div class="task-id">task_xxxxxx02</div>
+                <div class="status">排队中</div>
               </div>
-              <div style="font-size: 12px; color: #718096; line-height: 1.5;">增强人物轮廓</div>
-            </label>
+              <div class="task-meta">
+                <span>FlashVSR</span>
+                <span>人物增强</span>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <button class="btn" id="submitBtn" disabled>🚀 提交</button>
-      </div>
-
-      <!-- 任务列表功能区 -->
-      <div class="right-panel" id="historyPanel">
-        <div class="section-title">
-          <span>📋</span>
-          <span>任务列表</span>
-          <span style="margin-left: auto; font-size: 14px; color: #999; cursor: pointer;" onclick="downloadTasks()">⬇ 下载视频</span>
-        </div>
-
-        <div class="task-list" id="taskList">
-          <div class="loading">正在加载任务列表...</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 任务详情模态框 -->
-  <div class="modal" id="taskDetailModal" style="display: none;">
-    <div class="modal-overlay" onclick="closeTaskDetail()"></div>
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeTaskDetail()">×</button>
-      <div id="taskDetailContent"></div>
+  <div id="taskDetailModal" class="task-detail-modal" style="display: none;">
+    <div class="task-detail-dialog">
+      <div class="task-detail-header">
+        <div class="task-detail-title">任务详情</div>
+        <button
+          type="button"
+          class="task-detail-close"
+          onclick="closeTaskDetail()"
+        >
+          ✕
+        </button>
+      </div>
+      <div id="taskDetailContent" class="task-detail-body"></div>
     </div>
   </div>
 
   <div id="toastContainer"></div>
-
   <script src="/static/specialized/super_video.js"></script>
 </body>
 </html>
