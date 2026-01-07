@@ -221,7 +221,20 @@ function initUploadArea() {
   const videoInput = document.getElementById('videoInput');
   const changeVideoBtn = document.getElementById('changeVideoBtn');
 
-  uploadArea.onclick = () => videoInput.click();
+  if (!uploadArea || !videoInput) {
+    console.error('上传区域初始化失败：缺少必要元素', {
+      uploadArea: !!uploadArea,
+      videoInput: !!videoInput
+    });
+    return;
+  }
+
+  console.log('初始化上传区域，绑定事件监听器');
+
+  uploadArea.onclick = () => {
+    console.log('点击上传区域，触发文件选择');
+    videoInput.click();
+  };
 
   uploadArea.ondragover = (e) => {
     e.preventDefault();
@@ -235,22 +248,28 @@ function initUploadArea() {
   uploadArea.ondrop = (e) => {
     e.preventDefault();
     uploadArea.classList.remove('dragover');
+    console.log('拖放文件，文件数量:', e.dataTransfer.files.length);
     if (e.dataTransfer.files.length > 0) {
       handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
   videoInput.onchange = (e) => {
+    console.log('文件选择器变化，文件数量:', e.target.files.length);
     if (e.target.files.length > 0) {
       handleFileSelect(e.target.files[0]);
     }
   };
 
   // 更换视频按钮点击事件
-  changeVideoBtn.onclick = (e) => {
-    e.stopPropagation();
-    resetUploadArea();
-  };
+  if (changeVideoBtn) {
+    changeVideoBtn.onclick = (e) => {
+      e.stopPropagation();
+      resetUploadArea();
+    };
+  }
+
+  console.log('上传区域初始化完成');
 }
 
 // 重置上传区域
@@ -286,22 +305,54 @@ function resetUploadArea() {
 
 // 处理文件选择
 async function handleFileSelect(file) {
+  console.log('handleFileSelect 被调用，文件:', file.name, '大小:', file.size);
+  
   const uploadArea = document.getElementById('uploadArea');
   const fileInfo = document.getElementById('fileInfo');
-  const fileInfoText = document.getElementById('fileInfoText');
   const videoPreview = document.getElementById('videoPreview');
   const previewVideo = document.getElementById('previewVideo');
   const submitBtn = document.getElementById('submitBtn');
 
-  // 先加载视频
-  const url = URL.createObjectURL(file);
-  previewVideo.src = url;
+  // 检查必要元素是否存在
+  if (!fileInfo || !submitBtn) {
+    console.error('缺少必要的DOM元素:', {
+      fileInfo: !!fileInfo,
+      submitBtn: !!submitBtn
+    });
+    showModal('错误', '页面元素加载不完整，请刷新页面重试', 'error');
+    return;
+  }
+
+  // 先加载视频预览
+  if (previewVideo) {
+    const url = URL.createObjectURL(file);
+    previewVideo.src = url;
+
+    // 等待视频元数据加载完成后再切换显示
+    previewVideo.onloadedmetadata = () => {
+      if (videoPreview) {
+        videoPreview.style.display = 'flex';
+        setTimeout(() => {
+          videoPreview.classList.add('show');
+          if (uploadArea) {
+            uploadArea.style.opacity = '0';
+          }
+        }, 10);
+        
+        setTimeout(() => {
+          if (uploadArea) {
+            uploadArea.style.display = 'none';
+          }
+        }, 300);
+      }
+    };
+  }
 
   // 显示上传状态
   fileInfo.style.display = 'flex';
   fileInfo.style.alignItems = 'center';
   fileInfo.style.justifyContent = 'space-between';
-  fileInfoText.textContent = `⏳ 上传中: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+  fileInfo.textContent = `⏳ 上传中: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
   fileInfo.style.background = '#e3f2fd';
   fileInfo.style.color = '#1976d2';
 
@@ -309,37 +360,27 @@ async function handleFileSelect(file) {
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ 上传中...';
 
-  // 等待视频元数据加载完成后再切换显示
-  previewVideo.onloadedmetadata = () => {
-    // 平滑淡入淡出切换
-    videoPreview.style.display = 'flex';
-    setTimeout(() => {
-      videoPreview.classList.add('show');
-      uploadArea.style.opacity = '0';
-    }, 10);
-    
-    setTimeout(() => {
-      uploadArea.style.display = 'none';
-    }, 300);
-  };
-
   try {
+    console.log('开始创建FormData并准备上传...');
     const formData = new FormData();
     formData.append('file', file);
+    console.log('FormData已创建，准备发送请求到 /api/upload/video');
 
     const response = await fetch('/api/upload/video', {
       method: 'POST',
       body: formData
     });
 
-    const result = await response.json();
+    console.log('上传请求已发送，响应状态:', response.status, response.statusText);
 
+    const result = await response.json();
     console.log('视频上传API返回:', result);
 
     // 支持code: 0, code: 200, success: true三种成功标识
     if (result.code === 0 || result.code === 200 || result.success === true) {
       uploadedFilename = result.data.filename;
-      fileInfoText.textContent = `✅ 已选择: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB) - 上传成功`;
+      console.log('上传成功，文件名:', uploadedFilename);
+      fileInfo.textContent = `✅ 已选择: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB) - 上传成功`;
       fileInfo.style.background = '#e8f5e9';
       fileInfo.style.color = '#2e7d32';
       submitBtn.disabled = false;
@@ -349,20 +390,25 @@ async function handleFileSelect(file) {
     }
   } catch (error) {
     console.error('上传失败:', error);
-    fileInfoText.textContent = `❌ 上传失败: ${error.message}`;
+    console.error('错误堆栈:', error.stack);
+    fileInfo.textContent = `❌ 上传失败: ${error.message}`;
     fileInfo.style.background = '#ffebee';
     fileInfo.style.color = '#c62828';
     submitBtn.disabled = true;
     submitBtn.textContent = '🚀 提交';
     
     // 上传失败，恢复显示上传区域
-    videoPreview.classList.remove('show');
-    setTimeout(() => {
-      videoPreview.style.display = 'none';
-      uploadArea.style.display = 'flex';
-      uploadArea.style.opacity = '1';
-      previewVideo.src = '';
-    }, 300);
+    if (videoPreview) {
+      videoPreview.classList.remove('show');
+      setTimeout(() => {
+        if (videoPreview) videoPreview.style.display = 'none';
+        if (uploadArea) {
+          uploadArea.style.display = 'flex';
+          uploadArea.style.opacity = '1';
+        }
+        if (previewVideo) previewVideo.src = '';
+      }, 300);
+    }
   }
 }
 

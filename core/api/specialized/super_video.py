@@ -7,12 +7,12 @@ from core.comfyui_client import ComfyUIClient
 from core.models import TaskResponse
 from core.managers import TaskManager, ConnectionManager
 from core.response import R, ResponseModel
+from core.utils import generate_seed
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from pathlib import Path
 import subprocess
-import random
 import json
 import logging
 import traceback
@@ -129,11 +129,6 @@ def calculate_seedvr2_scale(video_filename: str) -> float:
   if height > 480:
     return round(480 / height, 4)
   return 1.0
-
-
-def generate_seed() -> int:
-  """生成随机种子，避免工作流被跳过"""
-  return random.randint(1, 2 ** 63 - 1)
 
 
 def resolve_workflow_config(

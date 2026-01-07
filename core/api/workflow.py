@@ -5,14 +5,13 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks
 from core.comfyui_client import ComfyUIClient
 from core.models import WorkflowSubmit, WorkflowUpdate, TaskResponse
 from core.managers import TaskManager, ConnectionManager
-from core.utils import apply_params_to_workflow
+from core.utils import apply_params_to_workflow, apply_random_seeds
 from core.response import R, ResponseModel
 from pathlib import Path
 from datetime import datetime
 import json
 import logging
 import traceback
-import random
 
 logger = logging.getLogger(__name__)
 
@@ -92,22 +91,6 @@ def setup_workflow_routes(
         "status": "failed",
         "error": error_msg
       }))
-  
-  @router.post("/workflow/submit", response_model=ResponseModel)
-  def apply_random_seeds(workflow: dict):
-    """
-    为存在seed字段且为空/零的节点填充随机种子，避免被跳过
-    """
-    for node in workflow.values():
-      if not isinstance(node, dict):
-        continue
-      inputs = node.get("inputs")
-      if not isinstance(inputs, dict):
-        continue
-      if "seed" in inputs:
-        seed_val = inputs.get("seed")
-        if seed_val in (None, "", 0):
-          inputs["seed"] = random.randint(1, 2 ** 63 - 1)
   
   @router.post("/workflow/submit", response_model=ResponseModel)
   async def submit_workflow(
