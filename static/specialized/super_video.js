@@ -334,7 +334,7 @@ function resetUploadArea() {
 // 处理文件选择
 async function handleFileSelect(file) {
   console.log('handleFileSelect 被调用，文件:', file.name, '大小:', file.size);
-  
+
   const uploadArea = document.getElementById('uploadArea');
   const fileInfo = document.getElementById('fileInfo');
   const videoPreview = document.getElementById('videoPreview');
@@ -351,42 +351,80 @@ async function handleFileSelect(file) {
     return;
   }
 
-  // 先加载视频预览
+  // 先加载视频预览，并在元数据就绪后检查分辨率
   if (previewVideo) {
     const url = URL.createObjectURL(file);
-    
+
     // 重置视频样式，确保保持原始宽高比
     previewVideo.style.width = '100%';
     previewVideo.style.height = 'auto';
     previewVideo.style.maxHeight = '600px';
     previewVideo.style.objectFit = 'contain';
     previewVideo.style.display = 'block';
-    
+
     previewVideo.src = url;
 
-    // 等待视频元数据加载完成后再切换显示
-    previewVideo.onloadedmetadata = () => {
+    // 等待视频元数据加载完成后再进行分辨率校验和上传
+    previewVideo.onloadedmetadata = async () => {
+      const width = previewVideo.videoWidth;
+      const height = previewVideo.videoHeight;
+
+      console.log('检测到视频分辨率:', width, 'x', height);
+
+      // 如果分辨率超过 480p，则拒绝上传，提示用户改用低分辨率视频
+      if (height > 480) {
+        URL.revokeObjectURL(url);
+        showModal(
+          '分辨率过高',
+          `当前视频分辨率为 ${width}x${height}，已超过 480p。\n` +
+          '该视频分辨率过高无法处理，请先在本地压缩或导出为不高于 480p 的视频后再上传。',
+          'warning'
+        );
+        // 重置上传区域和预览
+        resetUploadArea();
+        return;
+      }
+
       if (videoPreview) {
         // 让容器自适应视频高度
         videoPreview.style.height = 'auto';
         videoPreview.style.display = 'block';
-        
+
         setTimeout(() => {
           videoPreview.classList.add('show');
           if (uploadArea) {
             uploadArea.style.opacity = '0';
           }
         }, 10);
-        
+
         setTimeout(() => {
           if (uploadArea) {
             uploadArea.style.display = 'none';
           }
         }, 300);
       }
+      await uploadVideoFile(file, fileInfo, submitBtn, uploadArea, videoPreview, previewVideo);
     };
   }
+}
 
+/**
+ * 上传视频文件并根据结果更新 UI 状态
+ * @param {File} file - 选择的视频文件
+ * @param {HTMLElement} fileInfo - 显示上传状态的元素
+ * @param {HTMLButtonElement} submitBtn - 提交按钮
+ * @param {HTMLElement} uploadArea - 上传区域容器
+ * @param {HTMLElement} videoPreview - 视频预览容器
+ * @param {HTMLVideoElement} previewVideo - 预览用 video 元素
+ */
+async function uploadVideoFile(
+  file,
+  fileInfo,
+  submitBtn,
+  uploadArea,
+  videoPreview,
+  previewVideo
+) {
   // 显示上传状态
   fileInfo.style.display = 'flex';
   fileInfo.style.alignItems = 'center';
@@ -435,7 +473,7 @@ async function handleFileSelect(file) {
     fileInfo.style.color = '#c62828';
     submitBtn.disabled = true;
     submitBtn.textContent = '🚀 提交';
-    
+
     // 上传失败，恢复显示上传区域
     if (videoPreview) {
       videoPreview.classList.remove('show');

@@ -7,7 +7,7 @@
 ```
 specialized/
 ├── __init__.py           # 模块导出
-├── super_video.py        # SuperVideo视频放大API（4x超分辨率）
+├── super_video.py        # SuperVideo视频放大API
 └── README.md             # 本文件
 ```
 
