@@ -43,51 +43,25 @@ python start.py --host 0.0.0.0 --port 8000 --comfyui-server 192.168.48.123:8188
 
 ### 访问服务
 
-- **调试界面**: http://localhost:8000
+- **SuperVideo界面**: http://localhost:8000 (视频放大功能)
+- **监控面板**: http://localhost:8000/dashboard (工作流调试工具)
 - **API文档**: http://localhost:8000/docs
 - **健康检查**: http://localhost:8000/api/health
 
 ## 📚 文档
 
-- **[API使用文档](./API_USAGE.md)** - 完整的API使用指南，包括参数说明和多种语言示例
-- **[Postman使用指南](./POSTMAN_GUIDE.md)** - 如何使用Postman测试API，包含预配置的Collection
-- **[示例代码](./examples/)** - Python示例代码，包括基础用法、批量生成、高级用法
-- **[常见错误修复](./COMMON_ERRORS.md)** - 422、404等常见错误的快速修复指南⚡
-- **[故障排查](./TROUBLESHOOTING.md)** - 常见问题和解决方案
+- **[API使用文档](./docs/API_USAGE.md)** - 完整的API使用指南，包括参数说明和多种语言示例
+- **[Postman使用指南](./docs/POSTMAN_GUIDE.md)** - 如何使用Postman测试API，包含预配置的Collection
+- **[项目结构说明](./docs/PROJECT_STRUCTURE.md)** - 详细的项目架构和目录结构说明
+- **[工作流适配指南](./docs/WORKFLOW_ADAPTATION_GUIDE.md)** - 如何将ComfyUI工作流适配为专用API
 
 ## 🚀 快速开始 - API调用
 
-### 方式1：使用示例代码（推荐）
+### 方式1：使用Web界面（推荐）
 
-```bash
-# 运行基础示例
-cd examples
-python basic_usage.py
+访问 http://localhost:8000 使用SuperVideo视频放大功能，或访问 http://localhost:8000/dashboard 使用通用工作流调试工具。
 
-# 或批量生成
-python batch_generate.py
-
-# 或高级用法
-python advanced_usage.py
-```
-
-### 方式2：Python代码
-
-```python
-# 完整示例见 examples/basic_usage.py
-from examples.basic_usage import generate_image
-
-result = generate_image(
-    prompt="A beautiful sunset over the ocean",
-    negative_prompt="blurry, low quality",
-    seed=-1,  # 随机种子
-    steps=20,
-    width=1024,
-    height=1024
-)
-```
-
-### 方式3：使用Postman（推荐测试工具）
+### 方式2：使用Postman（推荐测试工具）
 
 1. 导入Collection：
    ```
@@ -106,15 +80,15 @@ result = generate_image(
 
 详细使用方法请查看 **[Postman使用指南](./POSTMAN_GUIDE.md)**
 
-### 方式4：直接使用curl
+### 方式3：直接使用curl
 
 ```bash
 curl -X POST http://localhost:8000/api/workflow/submit \
   -H "Content-Type: application/json" \
-  -d @workflows/qwen_t2i_distill.json
+  -d @workflows/your_workflow.json
 ```
 
-更多示例请查看 **[API使用文档](./API_USAGE.md)**
+更多示例请查看 **[API使用文档](./docs/API_USAGE.md)**
 
 ## API 使用示例
 
@@ -189,32 +163,56 @@ ws.onmessage = (event) => {
 - `POST /api/interrupt/{prompt_id}` - 中断任务
 - `GET /api/history` - 获取历史记录
 
-### 资源获取
+### 媒体资源
 - `GET /api/image/{filename}` - 获取生成的图片
+- `GET /api/video/{filename}` - 获取生成的视频
+- `POST /api/upload/image` - 上传图片到ComfyUI
+
+### 专用API
+- `POST /api/super_video/upload_and_upscale` - 上传视频并放大（SuperVideo）
+- `POST /api/super_video/upscale` - 使用已上传视频放大
 
 ## 项目结构
 
 ```
-├── main.py              # FastAPI主应用
-├── comfyui_client.py    # ComfyUI客户端封装
-├── config.py            # 配置管理
-├── start.py             # 启动脚本
-├── requirements.txt     # 依赖列表
-├── static/              
-│   └── index.html       # Web调试界面
-├── workflows/           # 工作流存储目录
-├── uploads/             # 上传文件目录
-└── outputs/             # 输出文件目录
+├── main.py                    # FastAPI主应用入口
+├── config.py                  # 配置管理
+├── core/                      # 核心代码模块
+│   ├── comfyui_client.py      # ComfyUI客户端封装
+│   ├── managers.py            # 任务和连接管理器
+│   ├── models.py              # 数据模型定义
+│   ├── response.py            # 统一响应格式
+│   └── api/                   # API路由模块
+│       ├── system.py          # 系统API
+│       ├── task.py            # 任务管理API
+│       ├── media.py           # 媒体文件API
+│       ├── workflow.py        # 通用工作流API
+│       └── specialized/       # 专用工作流API
+│           └── super_video.py # SuperVideo视频放大API
+├── static/                    # 静态文件（前端页面）
+│   ├── index.html             # 监控面板（工作流调试工具）
+│   └── specialized/
+│       └── super_video.html   # SuperVideo视频放大界面
+├── workflows/                 # 工作流存储目录
+├── uploads/                   # 上传文件目录
+└── outputs/                   # 输出文件目录
 ```
 
-## 工作流参数说明
+详细结构说明请查看 **[项目结构文档](./docs/PROJECT_STRUCTURE.md)**
 
-系统会自动识别工作流中的可编辑参数，主要包括：
+## 主要功能
 
-- **CLIPTextEncode节点** - 文本提示词
-- **KSampler节点** - 种子、步数、CFG、降噪强度
-- **EmptySD3LatentImage节点** - 图像尺寸、批量大小
-- **其他节点** - 根据widgets_values自动识别
+### 通用工作流管理
+- 支持上传和编辑任意ComfyUI工作流
+- 自动识别工作流中的可编辑参数
+- 实时任务状态监控
+- WebSocket实时推送任务更新
+
+### SuperVideo视频放大
+- AI视频超分辨率处理，支持4倍放大
+- 支持多种放大模型（FlashVSR等）
+- 自动保留原视频的帧率和音频
+- 智能分块处理大视频
 
 ## 注意事项
 

@@ -7,10 +7,7 @@
 ```
 specialized/
 ├── __init__.py           # 模块导出
-├── text2image.py         # 文生图API（基于qwen_t2i_distill工作流）
-├── wan22_i2v.py          # Wan2.2图生视频API（支持5-30秒智能拼接）
 ├── super_video.py        # SuperVideo视频放大API（4x超分辨率）
-├── infinitetalk_i2v.py   # InfiniteTalk音频驱动视频API（口型同步）
 └── README.md             # 本文件
 ```
 
@@ -112,73 +109,6 @@ app.include_router(my_workflow_router)
 
 ## 📚 现有API说明
 
-### text2image.py
-
-**路径**: `/api/text2image`
-
-**功能**: 简化的文生图接口，基于 `qwen_t2i_distill` 工作流
-
-**特点**:
-- 只需提供提示词即可生成
-- 自动处理随机种子
-- 支持自定义尺寸和步数
-
-**使用示例**:
-```python
-import requests
-
-url = "http://localhost:8000/api/text2image"
-data = {
-    "prompt": "A beautiful landscape",
-    "negative_prompt": "blurry",
-    "width": 1328,
-    "height": 1328,
-    "steps": 10,
-    "seed": -1
-}
-
-response = requests.post(url, json=data)
-result = response.json()
-print(f"任务ID: {result['data']['task_id']}")
-```
-
-### wan22_i2v.py
-
-**路径**: `/api/wan22_i2v`
-
-**功能**: Wan2.2图生视频，支持智能时长控制
-
-**特点**:
-- 支持5-30秒视频生成
-- 自动片段拼接（每5秒一个片段）
-- 颜色匹配确保视觉连贯
-- 一键上传图片并生成
-
-**主要端点**:
-1. `/api/wan22_i2v/upload_and_generate` - 上传图片并生成（推荐）
-2. `/api/wan22_i2v/generate` - 使用已上传图片生成
-
-**使用示例**:
-```python
-import requests
-
-url = "http://localhost:8000/api/wan22_i2v/upload_and_generate"
-
-with open("image.png", "rb") as f:
-    files = {"image": f}
-    data = {
-        "prompt": "A beautiful woman walking",
-        "duration": 10,  # 10秒 = 2个片段
-        "width": 480,
-        "height": 832,
-        "frame_rate": 16
-    }
-    
-    response = requests.post(url, files=files, data=data)
-    result = response.json()
-    print(f"任务ID: {result['data']['task_id']}")
-```
-
 ### super_video.py
 
 **路径**: `/api/super_video`
@@ -214,66 +144,6 @@ with open("video.mp4", "rb") as f:
     print(f"任务ID: {result['data']['task_id']}")
 ```
 
-### infinitetalk_i2v.py
-
-**路径**: `/api/infinitetalk-i2v`
-
-**功能**: 音频驱动的口型同步视频生成，让静态图片开口说话
-
-**特点**:
-- 上传人物图片和音频，生成口型同步视频
-- 支持多种分辨率（720x480、480x720、832x480）
-- 自动音频裁剪和人声分离
-- 高质量口型同步效果
-
-**主要端点**:
-1. `/api/infinitetalk-i2v/generate` - 生成音频驱动视频（POST）
-2. `/api/task/{task_id}` - 查询任务状态（GET，通用接口）
-
-**使用示例**:
-```python
-import requests
-
-# 1. 提交生成任务（最简单方式，只需上传文件）
-url = "http://localhost:8000/api/infinitetalk-i2v/generate"
-
-with open("person.png", "rb") as img_file, open("audio.wav", "rb") as audio_file:
-    files = {
-        "image": img_file,
-        "audio": audio_file
-    }
-    # 所有参数都是可选的，会自动使用最优默认值
-    # 音频时长会自动检测
-    response = requests.post(url, files=files)
-    result = response.json()
-    task_id = result['data']['task_id']
-
-# 2. 查询任务状态（使用通用接口）
-status_url = f"http://localhost:8000/api/task/{task_id}"
-response = requests.get(status_url)
-task_info = response.json()
-
-# 3. 高级用法：自定义参数
-with open("person.png", "rb") as img_file, open("audio.wav", "rb") as audio_file:
-    files = {
-        "image": img_file,
-        "audio": audio_file
-    }
-    data = {
-        "prompt": "A person passionately speaking",
-        "width": 720,
-        "height": 480,
-        "steps": 4,
-        "cfg": 1.0,
-        "fps": 25,
-        "audio_start_time": "0:00",
-        "audio_end_time": "10:00"
-    }
-    
-    response = requests.post(url, files=files, data=data)
-    result = response.json()
-    print(f"任务ID: {result['data']['task_id']}")
-```
 
 ## 🔧 最佳实践
 
@@ -326,22 +196,20 @@ background_tasks.add_task(wait_for_completion, prompt_id, timeout)
 
 ## 📖 参考文档
 
-- [Wan2.2 API 完整文档](../../../WAN22_I2V_API.md)
-- [通用API文档](../../../API_USAGE.md)
+- [通用API文档](../../../docs/API_USAGE.md)
+- [工作流适配指南](../../../docs/WORKFLOW_ADAPTATION_GUIDE.md)
 - [FastAPI官方文档](https://fastapi.tiangolo.com/)
 
 ## 💡 未来规划
 
 计划添加的专用API：
 
-- [x] Wan2.2图生视频API
 - [x] SuperVideo视频放大API
-- [x] InfiniteTalk音频驱动视频API
-- [ ] HiDream图像生成API
-- [ ] 视频编辑API（剪辑、拼接、特效）
+- [ ] 文生图API
+- [ ] 图生视频API
+- [ ] 音频驱动视频API
 - [ ] 图像超分辨率API
 - [ ] 风格迁移API
-- [ ] 图像修复API
 
 ## 🤝 贡献指南
 
@@ -355,6 +223,6 @@ background_tasks.add_task(wait_for_completion, prompt_id, timeout)
 
 ---
 
-**最后更新**: 2025-11-12
-**维护者**: ComfyAPI Team
+**最后更新**: 2026-01-07
+**维护者**: Chunli Ding
 

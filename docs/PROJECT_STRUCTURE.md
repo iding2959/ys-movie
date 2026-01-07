@@ -5,7 +5,7 @@ ComfyUI API中间件 - 完整项目结构文档
 ## 📁 目录结构
 
 ```
-Comfyapi/
+ys-movie/
 ├── core/                           # 核心代码
 │   ├── __init__.py                 # 核心模块导出
 │   ├── comfyui_client.py          # ComfyUI客户端封装（含图片上传）
@@ -19,44 +19,34 @@ Comfyapi/
 │       ├── task.py                 # 任务查询API
 │       ├── media.py                # 媒体文件API（图片、视频获取和上传）
 │       ├── workflow.py             # 通用工作流API
-│       └── specialized/            # 专用工作流API【新增】
+│       └── specialized/            # 专用工作流API
 │           ├── __init__.py         # 专用API模块导出
 │           ├── README.md           # 专用API使用文档
-│           ├── text2image.py       # 文生图API
-│           └── wan22_i2v.py        # Wan2.2图生视频API
+│           └── super_video.py     # SuperVideo视频放大API
 │
 ├── static/                         # 静态文件（前端页面）
-│   ├── index.html                  # 主页（工作流调试工具）
-│   ├── app.js                      # 主页JavaScript（含图片上传逻辑）
-│   ├── style.css                   # 主页样式
-│   └── specialized/                # 专用API测试页面【新增】
+│   ├── index.html                  # 监控面板（工作流调试工具）
+│   ├── app.js                      # 监控面板JavaScript
+│   ├── style.css                   # 监控面板样式
+│   └── specialized/                # 专用API测试页面
 │       ├── index.html              # 专用API主入口
-│       ├── text2image.html         # 文生图测试页面
-│       ├── text2image.js           # 文生图页面逻辑
-│       ├── wan22_i2v.html          # Wan2.2视频测试页面
-│       ├── wan22_i2v.js            # 视频页面逻辑
-│       ├── style.css               # 共享样式
-│       └── README.md               # 前端页面使用文档
+│       └── super_video.html        # SuperVideo视频放大测试页面
 │
 ├── workflows/                      # 工作流文件
-│   ├── HiDream-l1.json            # HiDream文生图工作流
-│   ├── qwen_t2i_distill.json      # Qwen文生图工作流
-│   ├── Wan2.2-I2V-15s.json        # Wan2.2 15秒视频工作流
-│   └── jiedian.json                # 单个5秒片段工作流
+│   └── flash_vsr.json             # FlashVSR视频放大工作流
 │
 ├── uploads/                        # 上传文件目录
 ├── outputs/                        # 输出文件目录
 │
+├── docs/                           # 文档目录
+│   ├── API_USAGE.md                # 通用API使用文档
+│   ├── POSTMAN_GUIDE.md           # Postman使用指南
+│   ├── PROJECT_STRUCTURE.md       # 本文件
+│   └── WORKFLOW_ADAPTATION_GUIDE.md # 工作流适配指南
+│
 ├── main.py                         # FastAPI主应用入口
-├── start.py                        # 启动脚本
 ├── config.py                       # 配置文件
 ├── requirements.txt                # Python依赖
-│
-├── API_USAGE.md                    # 通用API使用文档
-├── WAN22_I2V_API.md               # Wan2.2 API完整文档
-├── POSTMAN_GUIDE.md               # Postman使用指南
-├── FRONTEND_UPDATE_LOG.md         # 前端更新日志
-├── PROJECT_STRUCTURE.md            # 本文件
 └── README.md                       # 项目说明
 ```
 
@@ -129,91 +119,83 @@ Comfyapi/
   - `/api/workflow/upload` - 上传工作流
   - `/api/workflows` - 工作流列表
 
-#### 专用API (`core/api/specialized/`)【新增】
+#### 专用API (`core/api/specialized/`)
 针对特定场景的高级封装：
 
-- **text2image.py**: 文生图API
-  - `/api/text2image` - 快速文生图
-  - 基于 Qwen Image Distill 模型
-  - 参数简化，易于使用
-
-- **wan22_i2v.py**: Wan2.2图生视频API
-  - `/api/wan22_i2v/upload_and_generate` - 一键生成
-  - `/api/wan22_i2v/generate` - 使用已上传图片
-  - 支持5-30秒智能拼接
-  - 自动处理片段衔接
+- **super_video.py**: SuperVideo视频放大API
+  - `/api/super_video/upload_and_upscale` - 上传视频并放大（推荐）
+  - `/api/super_video/upscale` - 使用已上传视频放大
+  - 支持AI视频超分辨率处理，4倍放大
+  - 支持多种放大模型（FlashVSR等）
+  - 自动保留原视频的帧率和音频
 
 ### 3. 前端结构
 
 #### 主页面 (`static/`)
-- **index.html**: 通用工作流调试工具
+- **index.html**: 监控面板（通用工作流调试工具）
   - 上传和编辑任意工作流
   - 动态参数提取和修改
   - 实时任务监控
-  - 支持LoadImage节点图片上传【新增】
+  - 支持LoadImage节点图片上传
+  - 访问路径: `/dashboard`
 
-#### 专用测试页面 (`static/specialized/`)【新增】
+#### 专用测试页面 (`static/specialized/`)
 - **index.html**: 专用API入口
   - 展示所有可用专用API
   - 卡片式导航
 
-- **text2image.html**: 文生图测试
-  - 简化的参数界面
-  - 实时生成预览
-  - 结果下载
-
-- **wan22_i2v.html**: 视频生成测试
-  - 图片上传界面
-  - 时长选择器（5-30秒）
+- **super_video.html**: SuperVideo视频放大测试
+  - 视频上传界面
+  - 模型选择器
   - 进度跟踪
   - 视频播放预览
+  - 访问路径: `/` (根路径)
 
 ## 🔄 请求流程示例
 
-### 文生图流程
+### SuperVideo视频放大流程
 
 ```
-用户 → text2image.html
+用户 → super_video.html (根路径 /)
        ↓
-    输入提示词和参数
+    上传视频 + 选择模型
        ↓
-    text2image.js
-       ↓ POST /api/text2image
-    specialized/text2image.py
+    super_video.js
+       ↓ POST /api/super_video/upload_and_upscale
+    specialized/super_video.py
        ↓
-    生成workflow + 提交ComfyUI
+    1. 上传视频到ComfyUI input文件夹
+    2. 加载flash_vsr工作流
+    3. 修改工作流参数（视频文件名、模型等）
+    4. 提交workflow到ComfyUI
        ↓
     返回task_id
        ↓
     轮询 /api/task/{task_id}
        ↓
-    显示生成的图片
+    显示放大后的视频
 ```
 
-### 图生视频流程
+### 通用工作流流程
 
 ```
-用户 → wan22_i2v.html
+用户 → index.html (监控面板 /dashboard)
        ↓
-    上传图片 + 输入参数
+    上传工作流文件或选择已有工作流
        ↓
-    wan22_i2v.js
-       ↓ POST /api/wan22_i2v/upload_and_generate
-    specialized/wan22_i2v.py
+    修改参数（提示词、尺寸等）
        ↓
-    1. 上传图片到ComfyUI input文件夹
-    2. 根据时长生成workflow
-       - 5秒: 1个片段
-       - 10秒: 2个片段拼接
-       - 15秒: 3个片段拼接
-       - ...
-    3. 提交workflow到ComfyUI
+    app.js
+       ↓ POST /api/workflow/submit
+    api/workflow.py
+       ↓
+    提交workflow到ComfyUI
        ↓
     返回task_id
        ↓
-    轮询 /api/task/{task_id}
+    WebSocket实时推送状态
        ↓
-    显示生成的视频
+    显示生成结果
 ```
 
 ## 📊 数据流
@@ -276,7 +258,8 @@ python start.py
 ```
 
 ### 访问页面
-- 主页: http://localhost:8000
+- SuperVideo界面: http://localhost:8000 (根路径)
+- 监控面板: http://localhost:8000/dashboard
 - 专用API测试: http://localhost:8000/static/specialized/
 
 ### API文档
@@ -352,14 +335,14 @@ python start.py
 
 ## 📚 相关文档
 
-- [API使用文档](API_USAGE.md)
-- [Wan2.2 API文档](WAN22_I2V_API.md)
-- [专用API文档](core/api/specialized/README.md)
-- [前端页面文档](static/specialized/README.md)
+- [API使用文档](./API_USAGE.md)
+- [Postman使用指南](./POSTMAN_GUIDE.md)
+- [工作流适配指南](./WORKFLOW_ADAPTATION_GUIDE.md)
+- [专用API文档](../core/api/specialized/README.md)
 
 ---
 
-**最后更新**: 2025-10-28  
+**最后更新**: 2025-01-XX  
 **版本**: v2.0.0  
 **维护者**: ComfyAPI Team
 
