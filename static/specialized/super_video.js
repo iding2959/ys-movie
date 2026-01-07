@@ -414,17 +414,16 @@ async function handleFileSelect(file) {
 
 // 初始化模型选择
 function initModelSelect() {
-  const modelSelect = document.getElementById('modelSelect');
-  if (!modelSelect) {
+  // 检查是否已有选中的模型
+  const checkedModel = document.querySelector('input[name="modelSelect"]:checked');
+  if (checkedModel) {
     return;
   }
   
-  // 默认选中第一个有效模型
-  if (!modelSelect.value) {
-    const firstOption = modelSelect.querySelector('option');
-    if (firstOption) {
-      modelSelect.value = firstOption.value;
-    }
+  // 默认选中第一个模型（FlashVSR）
+  const firstModel = document.querySelector('input[name="modelSelect"]');
+  if (firstModel) {
+    firstModel.checked = true;
   }
 }
 
@@ -626,8 +625,8 @@ function initSubmitButton() {
     const selectedOption = document.querySelector('input[name="processingOption"]:checked');
     
     // 模型选择，回传后端
-    const modelSelect = document.getElementById('modelSelect');
-    const modelName = modelSelect && modelSelect.value ? modelSelect.value : 'FlashVSR-v1.1';
+    const modelRadio = document.querySelector('input[name="modelSelect"]:checked');
+    const modelName = modelRadio && modelRadio.value ? modelRadio.value : 'FlashVSR';
     
     const taskNameInput = document.getElementById('taskNameInput');
     const userTaskName = taskNameInput.value.trim();

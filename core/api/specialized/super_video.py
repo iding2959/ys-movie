@@ -131,6 +131,26 @@ def calculate_seedvr2_scale(video_filename: str) -> float:
   return 1.0
 
 
+def get_model_prefix(model_name: str) -> str:
+  """
+  根据模型名称获取文件前缀
+  
+  Args:
+    model_name: 模型名称
+  
+  Returns:
+    文件前缀（如 "FlashVSR" 或 "SeedVR2"）
+  """
+  model_name_lower = model_name.lower()
+  if "seedvr2" in model_name_lower or "seedvr" in model_name_lower:
+    return "SeedVR2"
+  elif "flashvsr" in model_name_lower or "flash" in model_name_lower:
+    return "FlashVSR"
+  else:
+    # 默认使用 FlashVSR
+    return "FlashVSR"
+
+
 def resolve_workflow_config(
   data: SuperVideoRequest,
   workflow_dir: Path,
@@ -149,20 +169,24 @@ def resolve_workflow_config(
   """
   def flash_vsr_updates(req: SuperVideoRequest):
     seed = generate_seed()
+    # 根据模型名称动态获取前缀
+    prefix = get_model_prefix(req.model_name)
     return [
       ("4", ["inputs", "video"], req.video_filename),
-      ("6", ["inputs", "filename_prefix"], f"FlashVSR_{safe_task_name}"),
+      ("6", ["inputs", "filename_prefix"], f"{prefix}_{safe_task_name}"),
       ("1", ["inputs", "seed"], seed)
     ]
   
   def seedvr2_updates(req: SuperVideoRequest):
     seed = generate_seed()
     scale_by = calculate_seedvr2_scale(req.video_filename)
+    # 根据模型名称动态获取前缀
+    prefix = get_model_prefix(req.model_name)
     return [
       ("19", ["inputs", "video"], req.video_filename),
       ("9", ["inputs", "scale_by"], scale_by),
       ("14", ["inputs", "seed"], seed),
-      ("10", ["inputs", "filename_prefix"], f"SeedVR2_{safe_task_name}")
+      ("10", ["inputs", "filename_prefix"], f"{prefix}_{safe_task_name}")
     ]
   
   workflow_profiles = {
