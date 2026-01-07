@@ -287,20 +287,48 @@ function resetUploadArea() {
   // 重置视频输入
   videoInput.value = '';
 
-  // 隐藏文件信息
-  fileInfo.style.display = 'none';
+  // 重置文件信息显示和样式
+  if (fileInfo) {
+    fileInfo.style.display = 'none';
+    fileInfo.textContent = '';
+    fileInfo.style.background = '';
+    fileInfo.style.color = '';
+    fileInfo.style.alignItems = '';
+    fileInfo.style.justifyContent = '';
+  }
 
   // 禁用提交按钮
-  submitBtn.disabled = true;
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '🚀 提交';
+  }
 
-  // 切换显示
-  videoPreview.classList.remove('show');
-  setTimeout(() => {
-    videoPreview.style.display = 'none';
-    uploadArea.style.display = 'flex';
-    uploadArea.style.opacity = '1';
+  // 重置视频预览
+  if (previewVideo) {
+    previewVideo.pause(); // 停止播放
     previewVideo.src = '';
-  }, 300);
+    previewVideo.load(); // 确保视频元素被重置
+  }
+
+  // 立即隐藏预览区域
+  if (videoPreview) {
+    videoPreview.classList.remove('show');
+    videoPreview.style.display = 'none';
+    videoPreview.style.opacity = '';
+  }
+
+  // 立即恢复上传区域显示（不等待动画）
+  if (uploadArea) {
+    // 使用 grid 布局以保持图标居中（与CSS一致）
+    uploadArea.style.display = 'grid';
+    uploadArea.style.opacity = '1';
+    uploadArea.style.visibility = 'visible';
+    uploadArea.style.transition = ''; // 清除可能的过渡效果
+    uploadArea.style.height = ''; // 恢复默认高度
+    uploadArea.style.width = ''; // 恢复默认宽度
+    // 确保上传区域回到正常状态
+    uploadArea.classList.remove('dragover');
+  }
 }
 
 // 处理文件选择
@@ -326,12 +354,23 @@ async function handleFileSelect(file) {
   // 先加载视频预览
   if (previewVideo) {
     const url = URL.createObjectURL(file);
+    
+    // 重置视频样式，确保保持原始宽高比
+    previewVideo.style.width = '100%';
+    previewVideo.style.height = 'auto';
+    previewVideo.style.maxHeight = '600px';
+    previewVideo.style.objectFit = 'contain';
+    previewVideo.style.display = 'block';
+    
     previewVideo.src = url;
 
     // 等待视频元数据加载完成后再切换显示
     previewVideo.onloadedmetadata = () => {
       if (videoPreview) {
-        videoPreview.style.display = 'flex';
+        // 让容器自适应视频高度
+        videoPreview.style.height = 'auto';
+        videoPreview.style.display = 'block';
+        
         setTimeout(() => {
           videoPreview.classList.add('show');
           if (uploadArea) {
@@ -403,7 +442,7 @@ async function handleFileSelect(file) {
       setTimeout(() => {
         if (videoPreview) videoPreview.style.display = 'none';
         if (uploadArea) {
-          uploadArea.style.display = 'flex';
+          uploadArea.style.display = 'grid'; // 使用 grid 以保持图标居中
           uploadArea.style.opacity = '1';
         }
         if (previewVideo) previewVideo.src = '';
