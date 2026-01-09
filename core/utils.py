@@ -52,23 +52,23 @@ def apply_params_to_workflow(
 def generate_seed() -> int:
   """
   生成随机种子，避免工作流被跳过
-  
-  注意：ComfyUI 的 FlashVSR 节点限制种子最大值为 2^50 (1125899906842624)
-  使用 2^50 作为上限以确保兼容性
-  
+
+  注意：ComfyUI 的大多数节点（包括 SeedVR2、FlashVSR 等）使用标准的 uint32 范围
+  种子最大值为 2^32 - 1 (4294967295)
+
   Returns:
-    1 到 2^50 之间的随机整数
+    1 到 2^32 - 1 之间的随机整数
   """
-  return random.randint(1, 2 ** 50)
+  return random.randint(1, 2 ** 32 - 1)
 
 
 def apply_random_seeds(workflow: dict):
   """
   为存在seed字段且为空/零的节点填充随机种子，避免被跳过
-  
-  注意：ComfyUI 的某些节点（如 FlashVSR）限制种子最大值为 2^50 (1125899906842624)
-  使用 2^50 作为上限以确保兼容性
-  
+
+  注意：ComfyUI 的大多数节点（包括 SeedVR2、FlashVSR 等）使用标准的 uint32 范围
+  种子最大值为 2^32 - 1 (4294967295)
+
   Args:
     workflow: 工作流字典，会被原地修改
   """
