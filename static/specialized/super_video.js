@@ -482,8 +482,8 @@ function initModelSelect() {
   if (checkedModel) {
     return;
   }
-  
-  // 默认选中第一个模型（FlashVSR）
+
+  // 默认选中第一个模型（SeedVR2）
   const firstModel = document.querySelector('input[name="modelSelect"]');
   if (firstModel) {
     firstModel.checked = true;
@@ -706,8 +706,8 @@ function initSubmitButton() {
       return;
     }
 
-    // 根据选项确定工作流（仅回传 workflow_key）
-    const workflowKey = selectedOption && selectedOption.value === 'seedvr2'
+    // 根据模型选择确定工作流（仅回传 workflow_key）
+    const workflowKey = modelName === 'SeedVR2'
       ? 'seedvr2'
       : 'flash_vsr';
 
