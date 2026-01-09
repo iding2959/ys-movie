@@ -371,20 +371,6 @@ async function handleFileSelect(file) {
 
       console.log('检测到视频分辨率:', width, 'x', height);
 
-      // 如果分辨率超过 480p，则拒绝上传，提示用户改用低分辨率视频
-      if (height > 480) {
-        URL.revokeObjectURL(url);
-        showModal(
-          '分辨率过高',
-          `当前视频分辨率为 ${width}x${height}，已超过 480p。\n` +
-          '该视频分辨率过高无法处理，请先在本地压缩或导出为不高于 480p 的视频后再上传。',
-          'warning'
-        );
-        // 重置上传区域和预览
-        resetUploadArea();
-        return;
-      }
-
       if (videoPreview) {
         // 让容器自适应视频高度
         videoPreview.style.height = 'auto';
